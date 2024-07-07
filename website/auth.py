@@ -1,8 +1,16 @@
-from flask import Blueprint, render_template, request, flash
+from flask import Blueprint, render_template, request, flash, redirect, url_for
 import bcrypt
 from .models import *
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import LoginManager
+from flask_login import (
+    LoginManager,
+    login_user,
+    login_required,
+    logout_user,
+    current_user,
+)
+
+# from .__init__ import load_user
 
 # import sqlite3
 
@@ -31,19 +39,29 @@ def signup():
             flash("Passwords do not match.", category="error")
             return render_template("sign-up.html")
 
+        if (
+            db.session.execute(
+                db.select(User).filter_by(username=username)
+            ).scalar_one_or_none()
+            == None
+        ):
+            hashedpw = generate_password_hash(password1, method="scrypt")
+            user = User(username=username, password=hashedpw)
+            db.session.add(user)
+            db.session.commit()
+            return redirect(url_for("auth.login"))
+        else:
+            flash("Username already exists.", category="error")
+            return render_template("sign-up.html")
+
         # password = b"super super secret password"
         # hashedpw = bcrypt.hashpw(password, bcrypt.gensalt())
         # print(hashedpw)
         # print(*hashedpw)
 
-        hashedpw = generate_password_hash(password1, method="scrypt")
-        print(hashedpw)
-        unhashedpw = check_password_hash(hashedpw, password1)
-        print(unhashedpw)
-
-        user = User(username=username, password=hashedpw)
-        db.session.add(user)
-        db.session.commit()
+        # print(hashedpw)
+        # unhashedpw = check_password_hash(hashedpw, password1)
+        # print(unhashedpw)
 
         # res = cur.execute("SELECT name from sqlite_master")
         # print(res.fetchone())
@@ -75,7 +93,7 @@ def signup():
         #     # res = cur.execute("SELECT *, password FROM users")
         # print(res.fetchall())
 
-        return render_template("sign-up.html")
+        return render_template("login.html")
 
 
 @auth.route("/login", methods=["GET", "POST"])
@@ -93,22 +111,46 @@ def login():
         # print(password)
         # testpw = res.fetchone()[0]
         # print(testpw)
-        if check_password_hash(User.password, password):
+
+        user = db.session.execute(
+            db.select(User).filter_by(username=username)
+        ).scalar_one()
+        # print(user)
+        # print(type(user))
+        # print(user.username)
+        # print(user.password)
+        # print(user.password[15:])
+        # print(check_password_hash(user.password, password))
+
+        if check_password_hash(user.password, password) == False:
             flash("Password is incorrect.", category="error")
             return render_template("login.html")
         else:
 
             flash("You have logged in successfully.", category="success")
-
+            user.is_authenticated = True
+            login_user(user)
+            print(current_user)
+            print(current_user.id)
+            # login_user(user)
+            # print(type(user.get_id()))
+            # user = db.session.execute(db.select(User).filter_by(id=id)).scalar_one()
+            # print(user)
+            # print(user.get_id())
             return render_template("index.html")
 
 
 @auth.route("/logout")
+@login_required
 def logout():
-    return render_template("index.html")
+    print("helo")
+    print(current_user)
+    # logout_user()
+    return redirect(url_for("auth.login"))
 
 
 @auth.route("/deleteaccount")
+@login_required
 def deleteaccount():
     db.session.delete(user)
     db.session.commit()

@@ -15,4 +15,9 @@ class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(unique=True)
     password: Mapped[str] = mapped_column()
-    # is_authenticated = False
+    is_authenticated = False
+    is_active = True
+    is_anonymous = False
+
+    def get_id(self):
+        return str(self.id)
