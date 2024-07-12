@@ -25,14 +25,15 @@ def create_app():
 
     @login_manager.user_loader
     def load_user(id):
-        user = db.session.execute(db.select(User).filter_by(id=id)).scalar_one_or_none()
-        if (
-            db.session.execute(db.select(User).filter_by(id=id)).scalar_one_or_none()
-            == None
-        ):
-            return None
-        else:
-            return user
+        # user = db.session.execute(db.select(User).filter_by(id=id)).scalar_one_or_none()
+        # if (
+        #     db.session.execute(db.select(User).filter_by(id=id)).scalar_one_or_none()
+        #     == None
+        # ):
+        #     return None
+        # else:
+        #     return user
+        return db.session.execute(db.select(User).filter_by(id=id)).scalar_one_or_none()
 
     # con = sqlite3.connect("new-new-music-tracker.db")
     # cur = con.cursor()

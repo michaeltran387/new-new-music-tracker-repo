@@ -10,5 +10,5 @@ views = Blueprint("views", __name__)
 @views.route("/")
 def home():
     # print(current_user)
-    # print(current_user.username())
+    # print(current_user.username)
     return render_template("index.html")

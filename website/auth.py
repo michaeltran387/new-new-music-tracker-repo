@@ -9,6 +9,7 @@ from flask_login import (
     logout_user,
     current_user,
 )
+from . import views
 
 # from .__init__ import load_user
 
@@ -130,22 +131,22 @@ def login():
             flash("You have logged in successfully.", category="success")
             user.is_authenticated = True
             login_user(user)
-            print(current_user)
-            print(current_user.id)
+            # print(current_user)
+            # print(current_user.id)
             # login_user(user)
             # print(type(user.get_id()))
             # user = db.session.execute(db.select(User).filter_by(id=id)).scalar_one()
             # print(user)
             # print(user.get_id())
-            return render_template("index.html")
+            return redirect(url_for("views.home"))
 
 
 @auth.route("/logout")
-@login_required
+# @login_required
 def logout():
     print("helo")
     print(current_user)
-    # logout_user()
+    logout_user()
     return redirect(url_for("auth.login"))
 
 
