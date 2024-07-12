@@ -33,6 +33,7 @@ def signup():
         return render_template("sign-up.html")
     if request.method == "POST":
         username = request.form.get("username")
+        displayname = request.form.get("displayname")
         password1 = request.form.get("password1")
         password2 = request.form.get("password2")
 
@@ -47,7 +48,7 @@ def signup():
             == None
         ):
             hashedpw = generate_password_hash(password1, method="scrypt")
-            user = User(username=username, password=hashedpw)
+            user = User(username=username, displayname=displayname, password=hashedpw)
             db.session.add(user)
             db.session.commit()
             return redirect(url_for("auth.login"))
@@ -115,21 +116,27 @@ def login():
 
         user = db.session.execute(
             db.select(User).filter_by(username=username)
-        ).scalar_one()
+        ).scalar_one_or_none()
         # print(user)
         # print(type(user))
         # print(user.username)
         # print(user.password)
         # print(user.password[15:])
         # print(check_password_hash(user.password, password))
-
-        if check_password_hash(user.password, password) == False:
+        if user == None:
+            flash("Username does not exist.", category="error")
+            return render_template("login.html")
+        elif check_password_hash(user.password, password) == False:
             flash("Password is incorrect.", category="error")
             return render_template("login.html")
         else:
-
             flash("You have logged in successfully.", category="success")
+            print(user.is_authenticated)
+            print(current_user.is_authenticated)
             user.is_authenticated = True
+            db.session.commit()
+            print(user.is_authenticated)
+            print(current_user.is_authenticated)
             login_user(user)
             # print(current_user)
             # print(current_user.id)
@@ -142,15 +149,16 @@ def login():
 
 
 @auth.route("/logout")
-# @login_required
+@login_required
 def logout():
-    print("helo")
     print(current_user)
+    print(current_user.get_id())
+    print(current_user.is_authenticated)
     logout_user()
     return redirect(url_for("auth.login"))
 
 
-@auth.route("/deleteaccount")
+@auth.route("/delete")
 @login_required
 def deleteaccount():
     db.session.delete(user)

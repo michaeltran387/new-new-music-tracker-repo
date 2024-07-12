@@ -11,9 +11,11 @@ def create_app():
 
     from .views import views
     from .auth import auth
+    from .track import track
 
     app.register_blueprint(views, url_prefix="/")
     app.register_blueprint(auth, url_prefix="/")
+    app.register_blueprint(track, url_prefix="/")
 
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///new-new-music-tracker.db"
     db.init_app(app)
@@ -34,6 +36,10 @@ def create_app():
         # else:
         #     return user
         return db.session.execute(db.select(User).filter_by(id=id)).scalar_one_or_none()
+
+    login_manager.login_view = "auth.login"
+    login_manager.login_message = "Please log in to access this page."
+    login_manager.login_message_category = "error"
 
     # con = sqlite3.connect("new-new-music-tracker.db")
     # cur = con.cursor()
