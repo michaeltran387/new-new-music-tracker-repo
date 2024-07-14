@@ -1,9 +1,11 @@
 {% extends "base.html" %} {% block title %}
 <title>Login</title>
 {% endblock %} {% block content %}
-<form action="#" method="POST">
+<!-- <div class="container"> -->
+
+<form action="#" method="POST" style="margin: auto; width: 50%;">
     <fieldset>
-        <legend>Log In</legend>
+        <legend style="text-align: center;">Log In</legend>
     <div class="mb-3">
     <label for="username" class="form=label">Username</label>
         <input type="text" class="form-control" id="username" name="username"></input>
@@ -13,7 +15,15 @@
         <input type="password" class="form-control" id="password" name="password"></input>
     </div>
 </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
+<div class="container">
+    <div class="row">
+        <div class="col text-center">
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+    </div>  
+</div>
 </fieldset>
 </form>
+
+<!-- </div> -->
 {% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %} {% block title %}
+<title>Home</title>
+{% endblock %} {% block content %}
+
+<form action="#" method="POST" style="margin: auto">
+  <fieldset>
+    <legend style="text-align: center">Add Artists</legend>
+    <div class="container">
+      <div class="row">
+        <div class="col-auto">
+          <input
+            class="form-control mr-sm-2"
+            type="search"
+            placeholder="Artist Name"
+            aria-label="Search"
+            name="search"
+          />
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">
+            Search
+          </button>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+</form>
+
+{% endblock %}

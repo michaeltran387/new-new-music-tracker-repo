@@ -11,11 +11,11 @@ def create_app():
 
     from .views import views
     from .auth import auth
-    from .track import track
+    from .track import track_blueprint
 
     app.register_blueprint(views, url_prefix="/")
     app.register_blueprint(auth, url_prefix="/")
-    app.register_blueprint(track, url_prefix="/")
+    app.register_blueprint(track_blueprint, url_prefix="/")
 
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///new-new-music-tracker.db"
     db.init_app(app)
