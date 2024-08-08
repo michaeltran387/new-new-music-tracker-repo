@@ -36,6 +36,7 @@ def track():
 
         print(r.json())
         print(r.json()["artists"]["items"][0]["name"])
+        print(r.json()["artists"]["items"][0]["images"][0]["url"])
 
         # r = requests.get(
         #     "https://api.spotify.com/v1/artists/2hGh5VOeeqimQFxqXvfCUf?si=GbHu7fEJSP6OvAXiU9ki4Q",
