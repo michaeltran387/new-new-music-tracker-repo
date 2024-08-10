@@ -4,6 +4,13 @@ import requests
 track_blueprint = Blueprint("track", __name__)
 
 
+class SearchResult:
+    def __init__(self, name, picture, link):
+        self.name = name
+        self.picture = picture
+        self.link = link
+
+
 @track_blueprint.route("/track", methods=["GET", "POST"])
 def track():
     if request.method == "GET":
@@ -37,6 +44,26 @@ def track():
         print(r.json())
         print(r.json()["artists"]["items"][0]["name"])
         print(r.json()["artists"]["items"][0]["images"][0]["url"])
+        print(r.json()["artists"]["items"][0]["external_urls"]["spotify"])
+
+        searchResultList = []
+
+        for i in range(5):
+            searchResultList.append(
+                SearchResult(
+                    r.json()["artists"]["items"][i]["name"],
+                    r.json()["artists"]["items"][i]["images"][0]["url"],
+                    r.json()["artists"]["items"][i]["external_urls"]["spotify"],
+                )
+            )
+
+        # print(searchResultList[1].name)
+
+        # searchResult1 = SearchResult(
+        #     r.json()["artists"]["items"][0]["name"],
+        #     r.json()["artists"]["items"][0]["images"][0]["url"],
+        #     r.json()["artists"]["items"][0]["external_urls"]["spotify"],
+        # )
 
         # r = requests.get(
         #     "https://api.spotify.com/v1/artists/2hGh5VOeeqimQFxqXvfCUf?si=GbHu7fEJSP6OvAXiU9ki4Q",
@@ -45,4 +72,4 @@ def track():
 
         # print(r.text)
 
-        return render_template("track.html")
+        return render_template("track.html", searchResultList=searchResultList)

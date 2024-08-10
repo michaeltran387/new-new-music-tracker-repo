@@ -1,10 +1,22 @@
 {% extends "base.html" %} {% block title %}
 <title>Home</title>
 {% endblock %} {% block content %}
-
 <form action="#" method="POST" style="margin: auto">
-  <fieldset>
-    <legend style="text-align: center">Add Artists</legend>
+  <div class="input-group mb-3">
+    <input
+      class="form-control mr-sm-2"
+      type="search"
+      placeholder="Artist Name"
+      aria-label="Search"
+      name="search"
+    />
+    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">
+      Search
+    </button>
+  </div>
+</form>
+
+<!-- <legend style="text-align: center">Add Artists</legend>
     <div class="container">
       <div class="row">
         <div class="col-auto">
@@ -22,20 +34,25 @@
           </button>
         </div>
       </div>
-    </div>
-  </fieldset>
-</form>
+    </div> -->
+
+{% for searchResultItem in searchResultList %}
 <ul class="list-group list-group-horizontal">
   <img
-    src="https://i.scdn.co/image/ab6761610000e5eb73c7f7505c1af82929ec41df"
-    alt="John Coltrane"
+    src="{{searchResultItem.picture}}"
     class="list-group-item list-group-item-action"
   />
-  <a href="#" class="list-group-item list-group-item-action">test</a>
+  <a
+    href="{{searchResultItem.link}}"
+    class="list-group-item list-group-item-action"
+    >{{searchResultItem.name}}</a
+  >
 </ul>
-<ul class="list-group list-group-horizontal">
+{% endfor %}
+
+<!-- <ul class="list-group list-group-horizontal">
   <a href="#" class="list-group-item list-group-item-action">test</a>
   <a href="#" class="list-group-item list-group-item-action">test</a>
-</ul>
+</ul> -->
 
 {% endblock %}
