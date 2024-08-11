@@ -16,60 +16,66 @@ def track():
     if request.method == "GET":
         return render_template("track.html")
     if request.method == "POST":
-        search = request.form.get("search")
+        if "search" in request.form:
 
-        r = requests.post(
-            "https://accounts.spotify.com/api/token",
-            headers={
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            data={
-                "grant_type": "client_credentials",
-                "client_id": "b2817ab1a6a6471dae92088510ed25f1",
-                "client_secret": "d4fad7b2dbac4eca9c558e39c584a6d0",
-            },
-        )
+            print(request.form)
 
-        access_token = r.json()["access_token"]
-        headers = {"Authorization": "Bearer " + access_token}
-        type = ["artist"]
-        # print(type)
+            search = request.form.get("search")
 
-        payload = {"q": search, "type": type}
-
-        r = requests.get(
-            "https://api.spotify.com/v1/search", params=payload, headers=headers
-        )
-
-        print(r.json())
-        print(r.json()["artists"]["items"][0]["name"])
-        print(r.json()["artists"]["items"][0]["images"][0]["url"])
-        print(r.json()["artists"]["items"][0]["external_urls"]["spotify"])
-
-        searchResultList = []
-
-        for i in range(5):
-            searchResultList.append(
-                SearchResult(
-                    r.json()["artists"]["items"][i]["name"],
-                    r.json()["artists"]["items"][i]["images"][0]["url"],
-                    r.json()["artists"]["items"][i]["external_urls"]["spotify"],
-                )
+            r = requests.post(
+                "https://accounts.spotify.com/api/token",
+                headers={
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                data={
+                    "grant_type": "client_credentials",
+                    "client_id": "b2817ab1a6a6471dae92088510ed25f1",
+                    "client_secret": "d4fad7b2dbac4eca9c558e39c584a6d0",
+                },
             )
 
-        # print(searchResultList[1].name)
+            access_token = r.json()["access_token"]
+            headers = {"Authorization": "Bearer " + access_token}
+            type = ["artist"]
+            # print(type)
 
-        # searchResult1 = SearchResult(
-        #     r.json()["artists"]["items"][0]["name"],
-        #     r.json()["artists"]["items"][0]["images"][0]["url"],
-        #     r.json()["artists"]["items"][0]["external_urls"]["spotify"],
-        # )
+            payload = {"q": search, "type": type}
 
-        # r = requests.get(
-        #     "https://api.spotify.com/v1/artists/2hGh5VOeeqimQFxqXvfCUf?si=GbHu7fEJSP6OvAXiU9ki4Q",
-        #     headers={"Authorization": "Bearer " + access_token},
-        # )
+            r = requests.get(
+                "https://api.spotify.com/v1/search", params=payload, headers=headers
+            )
 
-        # print(r.text)
+            # print(r.json())
+            # print(r.json()["artists"]["items"][0]["name"])
+            # print(r.json()["artists"]["items"][0]["images"][0]["url"])
+            # print(r.json()["artists"]["items"][0]["external_urls"]["spotify"])
 
-        return render_template("track.html", searchResultList=searchResultList)
+            searchResultList = []
+
+            for i in range(5):
+                searchResultList.append(
+                    SearchResult(
+                        r.json()["artists"]["items"][i]["name"],
+                        r.json()["artists"]["items"][i]["images"][0]["url"],
+                        r.json()["artists"]["items"][i]["external_urls"]["spotify"],
+                    )
+                )
+
+            # print(searchResultList[1].name)
+
+            # searchResult1 = SearchResult(
+            #     r.json()["artists"]["items"][0]["name"],
+            #     r.json()["artists"]["items"][0]["images"][0]["url"],
+            #     r.json()["artists"]["items"][0]["external_urls"]["spotify"],
+            # )
+
+            # r = requests.get(
+            #     "https://api.spotify.com/v1/artists/2hGh5VOeeqimQFxqXvfCUf?si=GbHu7fEJSP6OvAXiU9ki4Q",
+            #     headers={"Authorization": "Bearer " + access_token},
+            # )
+
+            # print(r.text)
+            return render_template("track.html", searchResultList=searchResultList)
+        else:
+            print(list(request.form.keys()))
+        return render_template("track.html")

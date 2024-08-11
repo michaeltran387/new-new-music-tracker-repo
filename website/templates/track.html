@@ -1,8 +1,8 @@
 {% extends "base.html" %} {% block title %}
 <title>Home</title>
 {% endblock %} {% block content %}
-<form action="#" method="POST" style="margin: auto">
-  <div class="input-group mb-3">
+<form action="#" method="POST" class="m-3">
+  <div class="input-group">
     <input
       class="form-control mr-sm-2"
       type="search"
@@ -41,12 +41,24 @@
   <img
     src="{{searchResultItem.picture}}"
     class="list-group-item list-group-item-action"
+    style="height: 200px; width: 200px"
   />
-  <a
-    href="{{searchResultItem.link}}"
-    class="list-group-item list-group-item-action"
-    >{{searchResultItem.name}}</a
-  >
+  <form action="#" method="POST">
+    <ul class="list-group">
+      <h5 class="m-3">{{searchResultItem.name}}</h5>
+      <a href="{{searchResultItem.link}}" class="mx-3">Spotify Link</a>
+      <input type="hidden" name="{{searchResultItem.name}}" />
+      <button type="submit" class="btn btn-outline-primary m-3">
+        Add Artist
+      </button>
+    </ul>
+  </form>
+
+  <!-- <a href="#" class="list-group-item list-group-item-action">
+    <div class="d-flex w-100 justify-content-between">
+      <h5>{{searchResultItem.name}}</h5>
+    </div>
+     -->
 </ul>
 {% endfor %}
 
