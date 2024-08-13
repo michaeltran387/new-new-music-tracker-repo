@@ -1,6 +1,8 @@
 {% extends "base.html" %} {% block title %}
 <title>Home</title>
-<h1>Home</h1>
-{% endblock %} {% block content %}
-<p>Hello, {{ current_user.displayname }}</p>
-{% endblock %}
+<h1 class="m-3">Home</h1>
+{% endblock %} {% block content %} {% if current_user.is_authenticated %}
+<p class="m-3">Hello, {{ current_user.displayname }}</p>
+{% else %}
+<p class="m-3">Welcome! Please sign in to start tracking new music.</p>
+{% endif %} {% endblock %}

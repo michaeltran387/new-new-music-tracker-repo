@@ -30,11 +30,19 @@ class User(db.Model):
 
 
 class AddedArtists(db.Model):
-    __tablename__ = "addArtist"
+    __tablename__ = "addedArtist"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    artist_spotify_id: Mapped[str] = mapped_column(nullable=False)
+    artist_id: Mapped[str] = mapped_column(nullable=False)
+
+
+class FlaggedMusic(db.Model):
+    __tablename__ = "flaggedMusic"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    album_id: Mapped[str] = mapped_column(nullable=False)
 
 
 # artists_m2m = db.Table(

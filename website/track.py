@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request
+from flask import Blueprint, render_template, redirect, url_for, request, flash
 import requests
 from .models import *
 from flask_login import login_required, current_user
@@ -6,12 +6,43 @@ from flask_login import login_required, current_user
 track_blueprint = Blueprint("track", __name__)
 
 
-class SearchResult:
+class SearchResultTrack:
     def __init__(self, name, picture, link, id):
         self.name = name
         self.picture = picture
         self.link = link
         self.id = id
+
+
+class SearchResultNewMusic:
+    def __init__(self, name, date, type, flag):
+        self.name = name
+        self.date = date
+        self.type = type
+        self.flag = flag
+
+        # Picture
+
+    # Artist Name
+    # Release Date
+    # Album Type
+    # Listened Flag
+
+
+r = requests.post(
+    "https://accounts.spotify.com/api/token",
+    headers={
+        "Content-Type": "application/x-www-form-urlencoded",
+    },
+    data={
+        "grant_type": "client_credentials",
+        "client_id": "b2817ab1a6a6471dae92088510ed25f1",
+        "client_secret": "d4fad7b2dbac4eca9c558e39c584a6d0",
+    },
+)
+
+access_token = r.json()["access_token"]
+headers = {"Authorization": "Bearer " + access_token}
 
 
 @track_blueprint.route("/track", methods=["GET", "POST"])
@@ -22,24 +53,9 @@ def track():
     if request.method == "POST":
         if "search" in request.form:
 
-            print(request.form)
+            # print(request.form)
 
             search = request.form.get("search")
-
-            r = requests.post(
-                "https://accounts.spotify.com/api/token",
-                headers={
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                data={
-                    "grant_type": "client_credentials",
-                    "client_id": "b2817ab1a6a6471dae92088510ed25f1",
-                    "client_secret": "d4fad7b2dbac4eca9c558e39c584a6d0",
-                },
-            )
-
-            access_token = r.json()["access_token"]
-            headers = {"Authorization": "Bearer " + access_token}
             type = ["artist"]
             # print(type)
 
@@ -54,11 +70,12 @@ def track():
             # print(r.json()["artists"]["items"][0]["images"][0]["url"])
             # print(r.json()["artists"]["items"][0]["external_urls"]["spotify"])
 
+            global searchResultList
             searchResultList = []
 
             for i in range(5):
                 searchResultList.append(
-                    SearchResult(
+                    SearchResultTrack(
                         r.json()["artists"]["items"][i]["name"],
                         r.json()["artists"]["items"][i]["images"][0]["url"],
                         r.json()["artists"]["items"][i]["external_urls"]["spotify"],
@@ -82,32 +99,59 @@ def track():
             # print(r.text)
             return render_template("track.html", searchResultList=searchResultList)
         else:
-            print(request.form.keys())
-            print(list(request.form.keys()))
-            print(list(request.form.keys())[0])
+            # print(request.form.keys())
+            # print(list(request.form.keys()))
+            # print(list(request.form.keys())[0])
+
+            # print(searchResultList[0].name)
 
             addedArtistsID = list(request.form.keys())[0]
 
             userArtists = db.session.execute(
-                db.select(AddedArtists.artist_spotify_id).where(
+                db.select(AddedArtists.artist_id).where(
                     AddedArtists.user_id == current_user.id
                 )
             ).scalars()
 
             if addedArtistsID in userArtists.all():
-                print("You are already tracking this artist.")
+                flash("You are already tracking this artist.", category="success")
+                return render_template("track.html", searchResultList=searchResultList)
 
             addArtist = AddedArtists(
-                user_id=current_user.id, artist_spotify_id=list(request.form.keys())[0]
+                user_id=current_user.id, artist_id=list(request.form.keys())[0]
             )
             db.session.add(addArtist)
             db.session.commit()
+            flash("Artist has been successfully added.", category="success")
 
             userArtists = db.session.execute(
-                db.select(AddedArtists.artist_spotify_id).where(
+                db.select(AddedArtists.artist_id).where(
                     AddedArtists.user_id == current_user.id
                 )
             ).scalars()
             print(userArtists.all())
 
-        return render_template("track.html")
+        return render_template("track.html", searchResultList=searchResultList)
+
+
+@track_blueprint.route("/newmusic", methods=["GET"])
+@login_required
+def newmusic():
+
+    trackedArtists = db.session.execute(
+        db.select(AddedArtists.artist_id).where(AddedArtists.user_id == current_user.id)
+    ).scalars()
+    # print(trackedArtists.all()[0])
+    # print(type(trackedArtists.all()))
+    # test = trackedArtists.all()
+    # # print(trackedArtists.all()[0])
+    # print(test)
+
+    endpoint = (
+        "https://api.spotify.com/v1/artists/" + trackedArtists.all()[0] + "/albums"
+    )
+
+    r = requests.get(endpoint, headers=headers)
+    print(r.json())
+
+    return render_template("newmusic.html")

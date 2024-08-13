@@ -51,6 +51,8 @@ def signup():
             user = User(username=username, displayname=displayname, password=hashedpw)
             db.session.add(user)
             db.session.commit()
+            flash("Account has been successfully created.", category="success")
+            flash("Please log in to continue.", category="success")
             return redirect(url_for("auth.login"))
         else:
             flash("Username already exists.", category="error")

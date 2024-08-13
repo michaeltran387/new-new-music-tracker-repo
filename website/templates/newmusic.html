@@ -1,0 +1,26 @@
+{% extends "base.html" %} {% block title %}
+<title>New Music</title>
+{% endblock %} {% block content %}
+<h1 class="m-3 text-center">New Music</h1>
+<p class="m-3 text-center">
+  Please add artists to track on the
+  <a href="track">track</a>
+  page.
+</p>
+
+<table data-toggle="table">
+  <thead>
+    <tr>
+      <th data-sortable="true">Artist</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>John Coltrane</td>
+    </tr>
+    <tr>
+      <td>Cannonball Adderley</td>
+    </tr>
+  </tbody>
+</table>
+{% endblock %}
