@@ -29,12 +29,12 @@ class User(db.Model):
         return str(self.id)
 
 
-class Artist(db.Model):
-    __tablename__ = "artist"
+class AddedArtists(db.Model):
+    __tablename__ = "addArtist"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    artist_spotify_id: Mapped[str] = mapped_column(nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    artist_spotify_id: Mapped[str] = mapped_column(nullable=False)
 
 
 # artists_m2m = db.Table(

@@ -1,17 +1,21 @@
 from flask import Blueprint, render_template, redirect, url_for, request
 import requests
+from .models import *
+from flask_login import login_required, current_user
 
 track_blueprint = Blueprint("track", __name__)
 
 
 class SearchResult:
-    def __init__(self, name, picture, link):
+    def __init__(self, name, picture, link, id):
         self.name = name
         self.picture = picture
         self.link = link
+        self.id = id
 
 
 @track_blueprint.route("/track", methods=["GET", "POST"])
+@login_required
 def track():
     if request.method == "GET":
         return render_template("track.html")
@@ -58,6 +62,7 @@ def track():
                         r.json()["artists"]["items"][i]["name"],
                         r.json()["artists"]["items"][i]["images"][0]["url"],
                         r.json()["artists"]["items"][i]["external_urls"]["spotify"],
+                        r.json()["artists"]["items"][i]["id"],
                     )
                 )
 
@@ -77,5 +82,32 @@ def track():
             # print(r.text)
             return render_template("track.html", searchResultList=searchResultList)
         else:
+            print(request.form.keys())
             print(list(request.form.keys()))
+            print(list(request.form.keys())[0])
+
+            addedArtistsID = list(request.form.keys())[0]
+
+            userArtists = db.session.execute(
+                db.select(AddedArtists.artist_spotify_id).where(
+                    AddedArtists.user_id == current_user.id
+                )
+            ).scalars()
+
+            if addedArtistsID in userArtists.all():
+                print("You are already tracking this artist.")
+
+            addArtist = AddedArtists(
+                user_id=current_user.id, artist_spotify_id=list(request.form.keys())[0]
+            )
+            db.session.add(addArtist)
+            db.session.commit()
+
+            userArtists = db.session.execute(
+                db.select(AddedArtists.artist_spotify_id).where(
+                    AddedArtists.user_id == current_user.id
+                )
+            ).scalars()
+            print(userArtists.all())
+
         return render_template("track.html")
