@@ -14,9 +14,11 @@ class SearchResultTrack:
         self.id = id
 
 
-class SearchResultNewMusic:
-    def __init__(self, name, date, type, flag):
-        self.name = name
+class NewMusic:
+    def __init__(self, artistName, albumName, picture, date, type, flag):
+        self.artistName = artistName
+        self.albumName = albumName
+        self.picture = picture
         self.date = date
         self.type = type
         self.flag = flag
@@ -147,11 +149,46 @@ def newmusic():
     # # print(trackedArtists.all()[0])
     # print(test)
 
-    endpoint = (
-        "https://api.spotify.com/v1/artists/" + trackedArtists.all()[0] + "/albums"
-    )
+    artistID = trackedArtists.all()[0]
+    endpoint = "https://api.spotify.com/v1/artists/" + artistID
+    r = requests.get(endpoint, headers=headers)
+    # print(r.json()["name"])
+    artistName = r.json()["name"]
+    # print(r.json()["name"])
+
+    endpoint = "https://api.spotify.com/v1/artists/" + artistID + "/albums"
 
     r = requests.get(endpoint, headers=headers)
-    print(r.json())
+    # print(r.json())
 
-    return render_template("newmusic.html")
+    # class NewMusic:
+    #     def __init__(self, name, picture, date, type, flag):
+    #         self.name = name
+    #         self.picture = picture
+    #         self.date = date
+    #         self.type = type
+    #         self.flag = flag
+
+    # Picture
+
+    # Artist Name
+    # Release Date
+    # Album Type
+    # Listened Flag
+
+    newMusicList = []
+
+    for i in range(20):
+        newMusicList.append(
+            NewMusic(
+                artistName,
+                r.json()["items"][i]["name"],
+                r.json()["items"][i]["images"][0]["url"],
+                r.json()["items"][i]["release_date"],
+                r.json()["items"][i]["album_type"],
+                False,
+            )
+        )
+    # print(newMusicList[0].flag)
+
+    return render_template("newmusic.html", newMusicList=newMusicList)

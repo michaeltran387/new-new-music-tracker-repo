@@ -7,20 +7,39 @@
   <a href="track">track</a>
   page.
 </p>
-
+<!-- <form action="#" method="POST"> -->
 <table data-toggle="table">
   <thead>
     <tr>
-      <th data-sortable="true">Artist</th>
+      <th data-sortable="false">Album Art</th>
+      <th data-sortable="true">Artist Name</th>
+      <th data-sortable="true">Album Name</th>
+      <th data-sortable="true">Release Date</th>
+      <th data-sortable="true">Album Type</th>
+      <th data-sortable="true">Flag</th>
     </tr>
   </thead>
   <tbody>
+    {% for newMusic in newMusicList %}
+    <!-- <input type="checkbox" class="btn-check" id="btn-check-outlined" autocomplete="off">
+    <label class="btn btn-outline-primary" for="btn-check-outlined"> -->
     <tr>
-      <td>John Coltrane</td>
+      <td>
+        <img src="{{newMusic.picture}}" style="width:200px;height:200px"></a>
+      </td>
+      <td>{{newMusic.artistName}}</td>
+      <td>{{newMusic.albumName}}</td>
+      <td>{{newMusic.date}}</td>
+      <td>{{newMusic.type}}</td>
+      <td>{{newMusic.flag}}</td>
     </tr>
-    <tr>
+  <!-- </label> -->
+    {% endfor %}
+
+    <!-- <tr>
       <td>Cannonball Adderley</td>
-    </tr>
+    </tr> -->
   </tbody>
 </table>
+<!-- </form> -->
 {% endblock %}
