@@ -15,20 +15,14 @@ class SearchResultTrack:
 
 
 class NewMusic:
-    def __init__(self, artistName, albumName, picture, date, type, flag):
+    def __init__(self, artistName, albumName, picture, date, type, flag, albumID):
         self.artistName = artistName
         self.albumName = albumName
         self.picture = picture
         self.date = date
         self.type = type
         self.flag = flag
-
-        # Picture
-
-    # Artist Name
-    # Release Date
-    # Album Type
-    # Listened Flag
+        self.albumID = albumID
 
 
 r = requests.post(
@@ -139,6 +133,7 @@ def track():
 @track_blueprint.route("/newmusic", methods=["GET"])
 @login_required
 def newmusic():
+    # try:
 
     trackedArtists = db.session.execute(
         db.select(AddedArtists.artist_id).where(AddedArtists.user_id == current_user.id)
@@ -149,7 +144,14 @@ def newmusic():
     # # print(trackedArtists.all()[0])
     # print(test)
 
-    artistID = trackedArtists.all()[0]
+    trackedArtistsList = trackedArtists.all()[0]
+    if not trackedArtistsList:
+        return render_template("newmusic.html")
+
+    artistID = trackedArtistsList
+    # except:
+    #     flash("Please track ")
+    print(artistID)
     endpoint = "https://api.spotify.com/v1/artists/" + artistID
     r = requests.get(endpoint, headers=headers)
     # print(r.json()["name"])
@@ -159,22 +161,17 @@ def newmusic():
     endpoint = "https://api.spotify.com/v1/artists/" + artistID + "/albums"
 
     r = requests.get(endpoint, headers=headers)
-    # print(r.json())
+    print(r.json())
 
     # class NewMusic:
-    #     def __init__(self, name, picture, date, type, flag):
-    #         self.name = name
+    #     def __init__(self, artistName, albumName, picture, date, type, flag, albumID):
+    #         self.artistName = artistName
+    #         self.albumName = albumName
     #         self.picture = picture
     #         self.date = date
     #         self.type = type
     #         self.flag = flag
-
-    # Picture
-
-    # Artist Name
-    # Release Date
-    # Album Type
-    # Listened Flag
+    #         self.albumID = albumID
 
     newMusicList = []
 
@@ -187,8 +184,14 @@ def newmusic():
                 r.json()["items"][i]["release_date"],
                 r.json()["items"][i]["album_type"],
                 False,
+                r.json()["items"][i]["id"],
             )
         )
     # print(newMusicList[0].flag)
 
     return render_template("newmusic.html", newMusicList=newMusicList)
+
+
+@track_blueprint.route("/test", methods=["GET"])
+def test():
+    return render_template("test.html")

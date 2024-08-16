@@ -1,12 +1,43 @@
 {% extends "base.html" %} {% block title %}
 <title>New Music</title>
+<head>
+  
+  <!-- <style>
+  .table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
+    background-color: lightgreen;
+  }
+</style> -->
+<!-- <script
+    src="https://code.jquery.com/jquery-3.7.1.js"
+    integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+    crossorigin="anonymous"></script>
+<script>
+// $(document).ready(function() {
+//   $(".select-row").click(function() {
+//     // $(".select-row").hide();
+//     alert("The table row was clicked.");
+//   });
+//   });
+$(document).ready(function () {
+        $(".select-row").click(function () {
+          $(".select-row").hide();
+        });
+      });
+
+$('#table').on('click-row.bs.table', function (e, row, $element, field) {
+  $(row).hide();
+})
+</script> -->
+</head>
 {% endblock %} {% block content %}
 <h1 class="m-3 text-center">New Music</h1>
-<p class="m-3 text-center">
+{% if not newMusicList %}
+<p class="m-3 text-center select-row">
   Please add artists to track on the
   <a href="track">track</a>
   page.
 </p>
+{% endif %}
 <!-- <form action="#" method="POST"> -->
 <table data-toggle="table">
   <thead>
@@ -31,8 +62,10 @@
       <td>{{newMusic.albumName}}</td>
       <td>{{newMusic.date}}</td>
       <td>{{newMusic.type}}</td>
-      <td>{{newMusic.flag}}</td>
+      <td><input type="checkbox" class="btn-check" id="{{newMusic.albumID}}" autocomplete="off">
+      <label class="btn btn-outline-primary" for="{{newMusic.albumID}}">Flag</label></td>
     </tr>
+
   <!-- </label> -->
     {% endfor %}
 
@@ -42,4 +75,6 @@
   </tbody>
 </table>
 <!-- </form> -->
+
+
 {% endblock %}
