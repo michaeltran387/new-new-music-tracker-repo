@@ -10,6 +10,7 @@ from flask_login import (
     current_user,
 )
 from . import views
+import requests
 
 # from .__init__ import load_user
 
@@ -140,6 +141,18 @@ def login():
             print(user.is_authenticated)
             print(current_user.is_authenticated)
             login_user(user)
+
+            r = requests.get(
+                "https://accounts.spotify.com/authorize",
+                headers={
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                params={
+                    "client_id": "b2817ab1a6a6471dae92088510ed25f1",
+                    "response_type": "code",
+                    "redirect_uri": "http://127.0.0.1:5000/",
+                },
+            )
             # print(current_user)
             # print(current_user.id)
             # login_user(user)

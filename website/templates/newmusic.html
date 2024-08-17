@@ -39,7 +39,8 @@ $('#table').on('click-row.bs.table', function (e, row, $element, field) {
 </p>
 {% endif %}
 <!-- <form action="#" method="POST"> -->
-<table data-toggle="table">
+  <form action="/newmusic" method="post">
+<table data-toggle="table" class="mb-5">
   <thead>
     <tr>
       <th data-sortable="false">Album Art</th>
@@ -56,14 +57,14 @@ $('#table').on('click-row.bs.table', function (e, row, $element, field) {
     <label class="btn btn-outline-primary" for="btn-check-outlined"> -->
     <tr>
       <td>
-        <img src="{{newMusic.picture}}" style="width:200px;height:200px"></a>
+        <img src="{{newMusic.picture}}" style="width:100px;height:100px"></a>
       </td>
       <td>{{newMusic.artistName}}</td>
       <td>{{newMusic.albumName}}</td>
       <td>{{newMusic.date}}</td>
       <td>{{newMusic.type}}</td>
-      <td><input type="checkbox" class="btn-check" id="{{newMusic.albumID}}" autocomplete="off">
-      <label class="btn btn-outline-primary" for="{{newMusic.albumID}}">Flag</label></td>
+      <td><input type="checkbox" class="btn-check" id="{{newMusic.albumID}}" name="{{newMusic.albumID}}" autocomplete="off">
+      <label class="btn btn-outline-primary" for="{{newMusic.albumID}}" name="{{newMusic.albumID}}">Flag</label></td>
     </tr>
 
   <!-- </label> -->
@@ -74,6 +75,11 @@ $('#table').on('click-row.bs.table', function (e, row, $element, field) {
     </tr> -->
   </tbody>
 </table>
+<button type="submit" class="btn btn-primary m-3" type="submit" style="position:fixed; bottom:3px;right:3px" >Submit</button>
+</form>
+<br>
+<br>
+<br>
 <!-- </form> -->
 
 
