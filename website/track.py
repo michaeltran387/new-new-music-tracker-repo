@@ -25,20 +25,37 @@ class NewMusic:
         self.albumID = albumID
 
 
-r = requests.post(
-    "https://accounts.spotify.com/api/token",
-    headers={
-        "Content-Type": "application/x-www-form-urlencoded",
-    },
-    data={
-        "grant_type": "client_credentials",
-        "client_id": "b2817ab1a6a6471dae92088510ed25f1",
-        "client_secret": "d4fad7b2dbac4eca9c558e39c584a6d0",
-    },
-)
+# r = requests.post(
+#     "https://accounts.spotify.com/api/token",
+#     headers={
+#         "Content-Type": "application/x-www-form-urlencoded",
+#     },
+#     data={
+#         "grant_type": "client_credentials",
+#         "client_id": "b2817ab1a6a6471dae92088510ed25f1",
+#         "client_secret": "d4fad7b2dbac4eca9c558e39c584a6d0",
+#     },
+# )
 
-access_token = r.json()["access_token"]
-headers = {"Authorization": "Bearer " + access_token}
+# access_token = r.json()["access_token"]
+# headers = {"Authorization": "Bearer " + access_token}
+
+
+@track_blueprint.route("/spotifyauth", methods=["GET"])
+def spotifyauth():
+    authURL = "https://accounts.spotify.com/authorize"
+    params = {
+        "client_id": "b2817ab1a6a6471dae92088510ed25f1",
+        "response_type": "code",
+        "redirect_uri": "http://127.0.0.1:5000/newmusic",
+        # "scope": "user-read-private",
+        "show_dialog": True,
+    }
+
+    r = requests.get(authURL, params=params)
+    # print(r.text)
+
+    return redirect(r.url)
 
 
 @track_blueprint.route("/track", methods=["GET", "POST"])
@@ -219,17 +236,7 @@ def trackArtists():
     # headers = {"Authorization": "Bearer " + access_token}
 
     # r = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
-    r = requests.get(
-        "https://accounts.spotify.com/authorize",
-        headers={
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        params={
-            "client_id": "b2817ab1a6a6471dae92088510ed25f1",
-            "response_type": "code",
-            "redirect_uri": "http://127.0.0.1:5000/",
-        },
-    )
+
     print(r)
 
     # access_token = r.json()["access_token"]
@@ -241,6 +248,6 @@ def trackArtists():
     return render_template("track-artists.html")
 
 
-@track_blueprint.route("/test", methods=["GET"])
-def test():
-    return render_template("test.html")
+# @track_blueprint.route("/test", methods=["GET"])
+# def test():
+#     return render_template("test.html")
