@@ -4,7 +4,7 @@
 {% endblock %} {% block content %} {% if current_user.is_authenticated %}
 <p class="m-3">Hello, {{ current_user.displayname }}</p>
 <a href="/spotifyauth" class="m-3">Please log in with spotify to get started.</p>
-<p class="m-3">{{request.url}}</p>
+<!-- <p class="m-3">{{request.url}}</p> -->
 {% else %}
 <p class="m-3">Welcome! Please sign in to start tracking new music.</p>
 {% endif %} {% endblock %}

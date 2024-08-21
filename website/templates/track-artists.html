@@ -1,22 +1,168 @@
 {% extends "base.html" %} {% block title %}
 <title>Track Artists</title>
-<h1 class="m-3">Track Artists</h1>
+<h1 class="m-3">Track Artists From Playlist</h1>
 {% endblock %} {% block content %}
-<p class="m-3">
-  Please select a playlist of yours containing artists you'd like to track.
-</p>
+<p class="m-3">Please select a playlist of yours.</p>
 
-<table data-toggle="table">
+<div class="d-flex justify-content-evenly">
+  <table data-toggle="table">
+    <thead>
+      <th data-width="100">Playlist Art</th>
+      <th data-width="1000" data-width-unit="px" data-halign="left">Name</th>
+    </thead>
+    <tbody>
+      {% for playlist in userPlaylistsOdd %}
+      <tr>
+        <td>
+          <img
+            src="{{playlist.image}}"
+            alt="Album Art"
+            width="100"
+            height="100"
+          />
+        </td>
+        <td>
+          <form action="#" method="POST">
+            <div class="row">
+              <h5
+                class="col"
+                style="
+                  display: flex;
+                  justify-content: left;
+                  align-items: center;
+                "
+              >
+                {{playlist.name}}
+              </h5>
+              <input type="hidden" name="{{playlist.playlistID}}" />
+              <button
+                type="submit"
+                class="btn btn-outline-primary col-auto m-3"
+                style="
+                  display: flex;
+                  justify-content: right;
+                  align-items: center;
+                "
+              >
+                Select
+              </button>
+            </div>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <table data-toggle="table">
+    <thead>
+      <th data-width="100">Playlist Art</th>
+      <th data-width="1000" data-width-unit="px" data-halign="left">Name</th>
+    </thead>
+    <tbody>
+      {% for playlist in userPlaylistsEven %}
+      <tr>
+        <td>
+          <img
+            src="{{playlist.image}}"
+            alt="Album Art"
+            width="100"
+            height="100"
+          />
+        </td>
+        <td>
+          <form action="#" method="POST">
+            <div class="row">
+              <h5
+                class="col"
+                style="
+                  display: flex;
+                  justify-content: left;
+                  align-items: center;
+                "
+              >
+                {{playlist.name}}
+              </h5>
+              <input type="hidden" name="{{playlist.playlistID}}" />
+              <button
+                type="submit"
+                class="btn btn-outline-primary col-auto m-3"
+                style="
+                  display: flex;
+                  justify-content: right;
+                  align-items: center;
+                "
+              >
+                Select
+              </button>
+            </div>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- <table data-toggle="table">
   <thead>
-    <th>Name</th>
-  </thead>
-  <tbody>
-    {% for playlist in userPlaylists %}
-    <tr>
-      <td>{{playlist.name}}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+    <th>Playlist Art</th>
+    <th>Playlist Name</th>
+    <th>Playlist Art</th>
+    <th>Playlist Name</th>
+  </thead> -->
 
+<!-- <tbody>
+    <tr>
+
+    </tr>
+  </tbody>
+  <tr>
+    <td>
+      <table data-toggle="table">
+        <thead>
+          <th data-width="100">Playlist Art</th>
+          <th>Name</th>
+        </thead>
+        <tbody>
+          {% for playlist in userPlaylistsOdd %}
+          <tr>
+            <td>
+              <img
+                src="{{playlist.image}}"
+                alt="Album Art"
+                width="100"
+                height="100"
+              />
+            </td>
+            <td>{{playlist.name}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </td>
+    <td>
+      <table data-toggle="table">
+        <thead>
+          <th data-width="100">Playlist Art</th>
+          <th>Name</th>
+        </thead>
+        <tbody>
+          {% for playlist in userPlaylistsEven %}
+          <tr>
+            <td>
+              <img
+                src="{{playlist.image}}"
+                alt="Album Art"
+                width="100"
+                height="100"
+              />
+            </td>
+            <td>{{playlist.name}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </td>
+  </tr>
+</table> -->
 {% endblock %}

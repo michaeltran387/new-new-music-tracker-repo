@@ -28,10 +28,10 @@ class NewMusic:
 
 
 class UserPlaylists:
-    def __init__(self, name, playlistID):
+    def __init__(self, name, playlistID, image):
         self.name = name
         self.playlistID = playlistID
-        # self.images = []
+        self.image = image
 
 
 # r = requests.post(
@@ -61,7 +61,7 @@ def spotifyauth():
         "response_type": "code",
         "redirect_uri": "http://127.0.0.1:5000/callback",
         # "scope": "user-read-private",
-        "show_dialog": True,
+        # "show_dialog": True,
     }
 
     r = requests.get(authURL, params=params)
@@ -140,6 +140,12 @@ def callback():
 @track_blueprint.route("/track", methods=["GET", "POST"])
 @login_required
 def track():
+
+    if not headers:
+        # print("headers is empty.")
+        flash("Please sign in to spotify to continue.", category="error")
+        return redirect("/")
+
     if request.method == "GET":
         return render_template("track.html")
     if request.method == "POST":
@@ -229,7 +235,14 @@ def track():
 @track_blueprint.route("/newmusic", methods=["GET", "POST"])
 @login_required
 def newmusic():
+
+    if not headers:
+        print("headers is empty.")
+        flash("Please sign in to spotify to continue.", category="error")
+        return redirect("/")
+
     # try:
+
     if request.method == "GET":
         trackedArtists = db.session.execute(
             db.select(AddedArtists.artist_id).where(
@@ -302,22 +315,62 @@ def newmusic():
 #         # self.images = []
 
 
-@track_blueprint.route("track-artists", methods=["GET"])
+@track_blueprint.route("track-artists", methods=["GET", "POST"])
 @login_required
 def trackArtists():
 
-    r = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
-    print(headers)
-    userPlaylists = []
-    for item in range(r.json()["total"]):
-        userPlaylists.append(
-            UserPlaylists(
-                r.json()["items"][item]["name"], r.json()["items"][item]["id"]
-            )
-        )
-        print(r.json()["items"][item]["name"])
+    if not headers:
+        # print("headers is empty.")
+        flash("Please sign in to spotify to continue.", category="error")
+        return redirect("/")
 
-    return render_template("track-artists.html", userPlaylists=userPlaylists)
+    if request.method == "GET":
+        r = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
+        # print(headers)
+        userPlaylists = []
+        for item in range(r.json()["total"]):
+            if not r.json()["items"][item]["images"][0]:
+                userPlaylists.append(
+                    UserPlaylists(
+                        r.json()["items"][item]["name"],
+                        r.json()["items"][item]["id"],
+                        "",
+                    )
+                )
+            else:
+                userPlaylists.append(
+                    UserPlaylists(
+                        r.json()["items"][item]["name"],
+                        r.json()["items"][item]["id"],
+                        r.json()["items"][item]["images"][0]["url"],
+                    )
+                )
+            # print(r.json()["items"][item]["images"][0])
+
+        userPlaylistsOdd = []
+        userPlaylistsEven = []
+
+        for playlist in range(len(userPlaylists)):
+            if playlist % 2 == 1:
+                # print("this one is odd")
+                userPlaylistsOdd.append(userPlaylists[playlist])
+            else:
+                userPlaylistsEven.append(userPlaylists[playlist])
+
+        # for item in range(len(userPlaylistsOdd)):
+        #     print(userPlaylistsOdd[item].name)
+        return render_template(
+            "track-artists.html",
+            userPlaylistsOdd=userPlaylistsOdd,
+            userPlaylistsEven=userPlaylistsEven,
+        )
+    if request.method == "POST":
+        print(list(request.form.keys())[0])
+        playlistID = list(request.form.keys())[0]
+        url = "https://api.spotify.com/v1/playlists/{}/tracks".format(playlistID)
+        print(url)
+
+        return render_template("track-artists-callback.html")
 
 
 # @track_blueprint.route("/test", methods=["GET"])
