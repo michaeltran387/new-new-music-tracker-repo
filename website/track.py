@@ -1,7 +1,9 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 import requests
+from requests.auth import HTTPBasicAuth
 from .models import *
 from flask_login import login_required, current_user
+import base64
 
 track_blueprint = Blueprint("track", __name__)
 
@@ -25,13 +27,20 @@ class NewMusic:
         self.albumID = albumID
 
 
+class UserPlaylists:
+    def __init__(self, name, playlistID):
+        self.name = name
+        self.playlistID = playlistID
+        # self.images = []
+
+
 # r = requests.post(
 #     "https://accounts.spotify.com/api/token",
 #     headers={
 #         "Content-Type": "application/x-www-form-urlencoded",
 #     },
 #     data={
-#         "grant_type": "client_credentials",
+#         "grant_type": "authorization_code",
 #         "client_id": "b2817ab1a6a6471dae92088510ed25f1",
 #         "client_secret": "d4fad7b2dbac4eca9c558e39c584a6d0",
 #     },
@@ -40,14 +49,17 @@ class NewMusic:
 # access_token = r.json()["access_token"]
 # headers = {"Authorization": "Bearer " + access_token}
 
+headers = {}
+
 
 @track_blueprint.route("/spotifyauth", methods=["GET"])
+@login_required
 def spotifyauth():
     authURL = "https://accounts.spotify.com/authorize"
     params = {
         "client_id": "b2817ab1a6a6471dae92088510ed25f1",
         "response_type": "code",
-        "redirect_uri": "http://127.0.0.1:5000/newmusic",
+        "redirect_uri": "http://127.0.0.1:5000/callback",
         # "scope": "user-read-private",
         "show_dialog": True,
     }
@@ -56,6 +68,73 @@ def spotifyauth():
     # print(r.text)
 
     return redirect(r.url)
+
+
+@track_blueprint.route("/callback", methods=["GET"])
+@login_required
+def callback():
+    # print("we're here")
+    # print(request.url)
+    # print(request.base_url
+    # print()
+
+    url = "https://accounts.spotify.com/api/token"
+
+    params = {
+        "grant_type": "authorization_code",
+        "code": request.args["code"],
+        "redirect_uri": "http://127.0.0.1:5000/callback",
+    }
+
+    client_id = "b2817ab1a6a6471dae92088510ed25f1"
+    client_secret = "d4fad7b2dbac4eca9c558e39c584a6d0"
+    b64client_id = base64.b64encode(b"b2817ab1a6a6471dae92088510ed25f1")
+    b64client_secret = base64.b64encode(b"d4fad7b2dbac4eca9c558e39c584a6d0")
+    authorization = str(
+        base64.b64encode(
+            b"b2817ab1a6a6471dae92088510ed25f1:d4fad7b2dbac4eca9c558e39c584a6d0"
+        ).decode()
+    )
+    # print(authorization)
+    # print("Basic " + authorization)
+
+    headersauth = {
+        "Authorization": "Basic " + authorization,
+        "Content-Type": "application/x-www-form-urlencoded",
+    }
+
+    r = requests.post(url, params=params, headers=headersauth)
+    # print(r.json())
+
+    global headers
+    headers = {"Authorization": "Bearer " + r.json()["access_token"]}
+    # print(headers)
+
+    # params = {"q": "John Coltrane", "type": "artist"}
+    # r = requests.get(
+    #     "https://api.spotify.com/v1/search", headers=headers, params=params
+    # )
+    # print(r.json())
+
+    # r = requests.post(
+    #     "https://accounts.spotify.com/api/token",
+    #     headers={
+    #         "Content-Type": "application/x-www-form-urlencoded",
+    #     },
+    #     params={
+    #         "grant_type": "authorization_code",
+    #         "code": code,
+    #         "redirect_uri": "http://127.0.0.1:5000/",
+    #         "client_id": client_id,
+    #         "client_secret": client_secret,
+    #     },
+    # )
+
+    # print(r.json())
+
+    # access_token = r.json()["access_token"]
+    # headers = {"Authorization": "Bearer " + access_token}
+    return redirect("/newmusic")
 
 
 @track_blueprint.route("/track", methods=["GET", "POST"])
@@ -173,7 +252,8 @@ def newmusic():
         print(artistID)
         endpoint = "https://api.spotify.com/v1/artists/" + artistID
         r = requests.get(endpoint, headers=headers)
-        # print(r.json()["name"])
+        print(r.json())
+        print(r.json()["name"])
         artistName = r.json()["name"]
         # print(r.json()["name"])
 
@@ -215,37 +295,29 @@ def newmusic():
         return render_template("newmusic.html")
 
 
+# class UserPlaylists:
+#     def __init__(self, name, playlistID):
+#         self.name = name
+#         self.playlistID = playlistID
+#         # self.images = []
+
+
 @track_blueprint.route("track-artists", methods=["GET"])
 @login_required
 def trackArtists():
 
-    # r = requests.post(
-    #     "https://accounts.spotify.com/api/token",
-    #     headers={
-    #         "Content-Type": "application/x-www-form-urlencoded",
-    #     },
-    #     data={
-    #         "grant_type": "client_credentials",
-    #         "client_id": "b2817ab1a6a6471dae92088510ed25f1",
-    #         "client_secret": "d4fad7b2dbac4eca9c558e39c584a6d0",
-    #     },
-    # )
-    # print(r.json())
+    r = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
+    print(headers)
+    userPlaylists = []
+    for item in range(r.json()["total"]):
+        userPlaylists.append(
+            UserPlaylists(
+                r.json()["items"][item]["name"], r.json()["items"][item]["id"]
+            )
+        )
+        print(r.json()["items"][item]["name"])
 
-    # access_token = r.json()["access_token"]
-    # headers = {"Authorization": "Bearer " + access_token}
-
-    # r = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
-
-    print(r)
-
-    # access_token = r.json()["access_token"]
-    # headers = {"Authorization": "Bearer " + access_token}
-
-    # r = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
-    # print(r.json())
-
-    return render_template("track-artists.html")
+    return render_template("track-artists.html", userPlaylists=userPlaylists)
 
 
 # @track_blueprint.route("/test", methods=["GET"])

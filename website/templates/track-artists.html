@@ -2,6 +2,21 @@
 <title>Track Artists</title>
 <h1 class="m-3">Track Artists</h1>
 {% endblock %} {% block content %}
-<p>Hi</p>
+<p class="m-3">
+  Please select a playlist of yours containing artists you'd like to track.
+</p>
+
+<table data-toggle="table">
+  <thead>
+    <th>Name</th>
+  </thead>
+  <tbody>
+    {% for playlist in userPlaylists %}
+    <tr>
+      <td>{{playlist.name}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
 {% endblock %}
