@@ -28,10 +28,11 @@ class NewMusic:
 
 
 class UserPlaylists:
-    def __init__(self, name, playlistID, image):
+    def __init__(self, name, playlistID, image, tracks):
         self.name = name
         self.playlistID = playlistID
         self.image = image
+        self.tracks = tracks
 
 
 # r = requests.post(
@@ -60,11 +61,12 @@ def spotifyauth():
         "client_id": "b2817ab1a6a6471dae92088510ed25f1",
         "response_type": "code",
         "redirect_uri": "http://127.0.0.1:5000/callback",
-        # "scope": "user-read-private",
+        # "scope": "playlist-read-private",
         # "show_dialog": True,
     }
 
     r = requests.get(authURL, params=params)
+
     # print(r.text)
 
     return redirect(r.url)
@@ -335,6 +337,7 @@ def trackArtists():
                         r.json()["items"][item]["name"],
                         r.json()["items"][item]["id"],
                         "",
+                        r.json()["items"][item]["tracks"]["href"],
                     )
                 )
             else:
@@ -343,9 +346,10 @@ def trackArtists():
                         r.json()["items"][item]["name"],
                         r.json()["items"][item]["id"],
                         r.json()["items"][item]["images"][0]["url"],
+                        r.json()["items"][item]["tracks"]["href"],
                     )
                 )
-            # print(r.json()["items"][item]["images"][0])
+            # print(r.json()["items"][item]["tracks"]["href"])
 
         userPlaylistsOdd = []
         userPlaylistsEven = []
@@ -365,10 +369,15 @@ def trackArtists():
             userPlaylistsEven=userPlaylistsEven,
         )
     if request.method == "POST":
-        print(list(request.form.keys())[0])
+        print(list(request.form.keys()))
         playlistID = list(request.form.keys())[0]
         url = "https://api.spotify.com/v1/playlists/{}/tracks".format(playlistID)
-        print(url)
+        # print(url)
+        # params = {"limit": "50"}
+        # print(headers)
+
+        r = requests.post(url, headers=headers)
+        print(r.json())
 
         return render_template("track-artists-callback.html")
 
