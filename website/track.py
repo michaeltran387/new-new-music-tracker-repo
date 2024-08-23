@@ -35,6 +35,13 @@ class UserPlaylists:
         self.tracks = tracks
 
 
+class Artist:
+    def __init__(self, id, name, image):
+        self.id = id
+        self.name = name
+        self.image = image
+
+
 # r = requests.post(
 #     "https://accounts.spotify.com/api/token",
 #     headers={
@@ -61,7 +68,7 @@ def spotifyauth():
         "client_id": "b2817ab1a6a6471dae92088510ed25f1",
         "response_type": "code",
         "redirect_uri": "http://127.0.0.1:5000/callback",
-        # "scope": "playlist-read-private",
+        # "scope": "playlist-read-private playlist-read-collaborative",
         # "show_dialog": True,
     }
 
@@ -369,17 +376,89 @@ def trackArtists():
             userPlaylistsEven=userPlaylistsEven,
         )
     if request.method == "POST":
-        print(list(request.form.keys()))
+
+        #     class Artist:
+        # def __init__(self, id, name):
+        #     self.id = id
+        #     self.name = name
+
+        # print(request.form)
+        # print(list(request.form.keys()))
+        # print(headers)
+
         playlistID = list(request.form.keys())[0]
-        url = "https://api.spotify.com/v1/playlists/{}/tracks".format(playlistID)
+
+        # url = "https://api.spotify.com/v1/playlists/{}/tracks".format(playlistID)
+        url = list(request.form.keys())[1]
+        params = {"fields": "next,items(track(artists(id,name)))"}
         # print(url)
         # params = {"limit": "50"}
         # print(headers)
 
-        r = requests.post(url, headers=headers)
-        print(r.json())
+        r = requests.get(url, headers=headers, params=params)
+        # print(r.json())
 
+        artistList = []
+        artistIDList = []
+
+        print(len(r.json()["items"]))
+
+        for item in range(len(r.json()["items"])):
+            for artist in range(len(r.json()["items"][item]["track"]["artists"])):
+                if (
+                    r.json()["items"][item]["track"]["artists"][artist]["id"]
+                    not in artistIDList
+                ):
+                    r2 = requests.get(
+                        "https://api.spotify.com/v1/artists/{}".format(
+                            r.json()["items"][item]["track"]["artists"][artist]["id"]
+                        ),
+                        headers=headers,
+                    )
+                    artistIDList.append(
+                        r.json()["items"][item]["track"]["artists"][artist]["id"]
+                    )
+                    if r2.json()["images"][0]["url"]:
+                        artistList.append(
+                            Artist(
+                                r.json()["items"][item]["track"]["artists"][artist][
+                                    "id"
+                                ],
+                                r.json()["items"][item]["track"]["artists"][artist][
+                                    "name"
+                                ],
+                                r2.json()["images"][0]["url"],
+                            )
+                        )
+                    else:
+                        artistList.append(
+                            Artist(
+                                r.json()["items"][item]["track"]["artists"][artist][
+                                    "id"
+                                ],
+                                r.json()["items"][item]["track"]["artists"][artist][
+                                    "name"
+                                ],
+                                "",
+                            )
+                        )
+
+        # for x in artistList:
+        #     print(x.name)
+
+        return render_template("track-artists-callback.html", artistList=artistList)
         return render_template("track-artists-callback.html")
+
+
+@track_blueprint.route("/track-artists-callback", methods=["GET"])
+@login_required
+def trackArtistsCallback():
+    if not headers:
+        # print("headers is empty.")
+        flash("Please sign in to spotify to continue.", category="error")
+        return redirect("/")
+
+    return render_template("track-artists-callback.html")
 
 
 # @track_blueprint.route("/test", methods=["GET"])

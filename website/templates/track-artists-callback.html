@@ -4,4 +4,32 @@
 {% endblock %} {% block content %}
 <p class="m-3">Please select the artists you'd like to track.</p>
 
+<table data-toggle="table">
+  <thead>
+    <th data-width="150"></th>
+    <th>Artist</th>
+  </thead>
+  <form>
+    <tbody>
+      {% for artist in artistList %}
+
+      <tr>
+        <td>
+          <img src="{{artist.image}}" style="height: 150; width: 150px" />
+        </td>
+        <td>
+          <div class="d-flex m-3">
+            <p class="m-3">{{artist.name}}</p>
+            <button type="button" class="btn ms-auto" data-bs-toggle="button">
+              Select
+            </button>
+          </div>
+        </td>
+      </tr>
+
+      {% endfor %}
+    </tbody>
+  </form>
+</table>
+
 {% endblock %}
