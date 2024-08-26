@@ -9,10 +9,18 @@
 />
 
 {% endblock %} {% block content %}
-<form action="/newmusic" method="POST">
-  <input type="hidden" name="test">
-  <button type="submit">Submit me</button>
-</form>
+<!-- <form action="/newmusic" method="POST">
+  <div class="form-check">
+    <input type="checkbox" class="btn-check" id="btn-check"  name="test" value="test">
+    <label class="btn btn-outline-primary" for="btn-check">Test</label>
+  </div>
+  <div class="form-check">
+    <input type="checkbox" class="btn-check" id="btn-check-1"  name="test2" value="test2">
+    <label class="btn btn-outline-primary" for="btn-check-1">Test</label>
+  </div>
+
+    <button type="submit" name="test3" value="test3">Submit me</button>
+</form> -->
 <form action="/newmusic" method="POST">
 <table data-toggle="table">
   <thead>
@@ -30,19 +38,8 @@
         <td>
           <div class="d-flex m-3">
             <h4 class="m-3">{{artist.name}}</h4>
-            <!-- <form action="/newmusic" method="POST"> -->
-            <!-- <input type="hidden" name="{{artist.id}}"> -->
-            <!-- <input type="hidden" name="{{artist.name}}"> -->
-            <button
-              type="button"
-              class="btn btn-outline-primary btn-lg ms-auto m-3"
-              data-bs-toggle="button"
-              name="{{artist.name}}"
-              value="{{artist.id}}"
-            >
-              Select
-            </button>
-            
+            <input type="checkbox" class="btn-check" id="{{artist.id}}"  name="{{artist.name}}" value="{{artist.id}}">
+            <label class="btn btn-outline-primary ms-auto m-3" for="{{artist.id}}">Select</label>
           </form>
           </div>
         </td>

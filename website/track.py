@@ -42,13 +42,14 @@ class Artist:
         self.image = image
 
 
-def addArtist(id, name):
+def addArtist(name, id):
 
     check = db.session.execute(
         db.select(AddedArtists.artist_id).where(AddedArtists.user_id == current_user.id)
     ).scalars()
 
     if id in check.all():
+        # print("this artist is already in the user's addedartists database")
         return None
 
     addArtist = AddedArtists(user_id=current_user.id, artist_id=id, name=name)
@@ -58,7 +59,9 @@ def addArtist(id, name):
     check = db.session.execute(
         db.select(AddedArtists.artist_id).where(AddedArtists.user_id == current_user.id)
     ).scalars()
-    print(check.all())
+    # print(check.all())
+    # print("artist successfully added")
+    return None
 
 
 # addArtist = AddedArtists(
@@ -242,6 +245,7 @@ def track():
             # print(r.text)
             return render_template("track.html", searchResultList=searchResultList)
         else:
+
             print(request.form.keys())
             # print(list(request.form.keys()))
             # print(list(request.form.keys())[0])
@@ -293,71 +297,78 @@ def newmusic():
     if request.method == "GET":
 
         trackedArtists = db.session.execute(
-            db.select(AddedArtists.artist_id).where(
-                AddedArtists.user_id == current_user.id
-            )
+            db.select(AddedArtists).where(AddedArtists.user_id == current_user.id)
         ).scalars()
 
-        if not trackedArtists.all():
+        trackedArtistsList = trackedArtists.all()
 
+        if not trackedArtistsList:
             return render_template("/newmusic.html")
-        print(trackedArtists.all())
+        print(trackedArtistsList)
         # print(type(trackedArtists.all()))
         # test = trackedArtists.all()
         # # print(trackedArtists.all()[0])
         # print(test)
 
-        trackedArtistsList = trackedArtists.all()[0]
-        if not trackedArtistsList:
-            return render_template("newmusic.html")
-
-        artistID = trackedArtistsList
-        # except:
-        #     flash("Please track ")
-        print(artistID)
-        endpoint = "https://api.spotify.com/v1/artists/" + artistID
-        r = requests.get(endpoint, headers=headers)
-        print(r.json())
-        print(r.json()["name"])
-        artistName = r.json()["name"]
-        # print(r.json()["name"])
-
-        endpoint = "https://api.spotify.com/v1/artists/" + artistID + "/albums"
-
-        r = requests.get(endpoint, headers=headers)
-        # print(r.json())
-
-        # class NewMusic:
-        #     def __init__(self, artistName, albumName, picture, date, type, flag, albumID):
-        #         self.artistName = artistName
-        #         self.albumName = albumName
-        #         self.picture = picture
-        #         self.date = date
-        #         self.type = type
-        #         self.flag = flag
-        #         self.albumID = albumID
+        # if not trackedArtistsList:
+        #     return render_template("newmusic.html")
 
         newMusicList = []
+        for artist in trackedArtistsList:
+            # endpoint = "https://api.spotify.com/v1/artists/" + artist.id
 
-        for i in range(20):
-            newMusicList.append(
-                NewMusic(
-                    artistName,
-                    r.json()["items"][i]["name"],
-                    r.json()["items"][i]["images"][0]["url"],
-                    r.json()["items"][i]["release_date"],
-                    r.json()["items"][i]["album_type"],
-                    False,
-                    r.json()["items"][i]["id"],
-                )
+            # # except:
+            # #     flash("Please track ")
+            # # print(artistID)
+
+            # r = requests.get(endpoint, headers=headers)
+            # print(r.json())
+            # print(r.json()["name"])
+            # artistName = r.json()["name"]
+            # print(r.json()["name"])
+
+            endpoint = (
+                "https://api.spotify.com/v1/artists/" + artist.artist_id + "/albums"
             )
+
+            r = requests.get(endpoint, headers=headers)
+            # print(r.json())
+
+            # class NewMusic:
+            #     def __init__(self, artistName, albumName, picture, date, type, flag, albumID):
+            #         self.artistName = artistName
+            #         self.albumName = albumName
+            #         self.picture = picture
+            #         self.date = date
+            #         self.type = type
+            #         self.flag = flag
+            #         self.albumID = albumID
+
+            for i in range(20):
+                newMusicList.append(
+                    NewMusic(
+                        artist.name,
+                        r.json()["items"][i]["name"],
+                        r.json()["items"][i]["images"][0]["url"],
+                        r.json()["items"][i]["release_date"],
+                        r.json()["items"][i]["album_type"],
+                        False,
+                        r.json()["items"][i]["id"],
+                    )
+                )
         # print(newMusicList[0].flag)
 
         return render_template("newmusic.html", newMusicList=newMusicList)
     if request.method == "POST":
-
+        print(request.form)
         print(list(request.form.keys()))
-        return render_template("newmusic.html")
+        print(list(request.form.items()))
+        print(list(request.form.items())[0][0])
+        for artist in list(request.form.items()):
+            addArtist(artist[0], artist[1])
+        # addArtist()
+
+        return redirect("/newmusic")
 
 
 # class UserPlaylists:

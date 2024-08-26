@@ -30,6 +30,7 @@ $('#table').on('click-row.bs.table', function (e, row, $element, field) {
 </script> -->
 </head>
 {% endblock %} {% block content %}
+<body onload="clicker()">
 <h1 class="m-3 text-center">New Music</h1>
 {% if not newMusicList %}
 <p class="m-3 text-center select-row">
@@ -45,7 +46,7 @@ $('#table').on('click-row.bs.table', function (e, row, $element, field) {
       <th data-sortable="false">Album Art</th>
       <th data-sortable="true">Artist Name</th>
       <th data-sortable="true">Album Name</th>
-      <th data-sortable="true">Release Date</th>
+      <th data-sortable="true" id="defaultsort">Release Date</th>
       <th data-sortable="true">Album Type</th>
       <th data-sortable="true">Flag</th>
     </tr>
@@ -81,5 +82,10 @@ $('#table').on('click-row.bs.table', function (e, row, $element, field) {
 <br>
 <!-- </form> -->
 
-
+<script>
+// window.addEventListener("DOMContentLoaded", clicker() { 
+//   document.getElementById("defaultsort").click()
+// }, false);
+</script>
+</body>
 {% endblock %}
