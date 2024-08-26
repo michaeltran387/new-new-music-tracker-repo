@@ -44,12 +44,21 @@ class Artist:
 
 def addArtist(id, name):
 
-    userArtistsID = db.session.execute(
+    check = db.session.execute(
         db.select(AddedArtists.artist_id).where(AddedArtists.user_id == current_user.id)
     ).scalars()
 
-    if id in userArtistsID.all():
-        return render_template("track.html", searchResultList=searchResultList)
+    if id in check.all():
+        return None
+
+    addArtist = AddedArtists(user_id=current_user.id, artist_id=id, name=name)
+    db.session.add(addArtist)
+    db.session.commit()
+
+    check = db.session.execute(
+        db.select(AddedArtists.artist_id).where(AddedArtists.user_id == current_user.id)
+    ).scalars()
+    print(check.all())
 
 
 # addArtist = AddedArtists(
@@ -444,23 +453,23 @@ def trackArtistsCallback():
 
         artistList = []
         artistIDList = []
-        if not artistList:
-            print("it's empty")
+        # if not artistList:
+        #     print("it's empty")
 
         counter = 0
 
-        print(r.json()["limit"])
-        print(r.json()["total"])
-        print(r.json()["next"])
+        # print(r.json()["limit"])
+        # print(r.json()["total"])
+        # print(r.json()["next"])
 
         # while (r.json()["total"] == 100)
 
         # while (r.json()["total"] - (counter * r.json()["limit"])) > 0:
         while (r.json()["next"] != None) or (r.json()["previous"] == None):
             counter += 1
-            print(r.json()["limit"])
-            print(r.json()["total"])
-            print(r.json()["next"])
+            # print(r.json()["limit"])
+            # print(r.json()["total"])
+            # print(r.json()["next"])
 
             for item in range(len(r.json()["items"])):
                 for artist in range(len(r.json()["items"][item]["track"]["artists"])):

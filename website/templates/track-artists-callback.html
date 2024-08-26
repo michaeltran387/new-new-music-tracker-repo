@@ -7,16 +7,22 @@
   integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
   crossorigin="anonymous"
 />
+
 {% endblock %} {% block content %}
+<form action="/newmusic" method="POST">
+  <input type="hidden" name="test">
+  <button type="submit">Submit me</button>
+</form>
+<form action="/newmusic" method="POST">
 <table data-toggle="table">
   <thead>
     <th data-width="150"></th>
     <th data-sortable="true">Artist</th>
   </thead>
-  <form action="#">
+  <!-- <form action="/newmusic" method="POST"> -->
     <tbody>
       {% for artist in artistList %}
-
+      
       <tr>
         <td>
           <img src="{{artist.image}}" style="height: 150; width: 150px" />
@@ -24,23 +30,32 @@
         <td>
           <div class="d-flex m-3">
             <h4 class="m-3">{{artist.name}}</h4>
-            <input type="hidden" name="{{artist.id}}">
+            <!-- <form action="/newmusic" method="POST"> -->
+            <!-- <input type="hidden" name="{{artist.id}}"> -->
+            <!-- <input type="hidden" name="{{artist.name}}"> -->
             <button
               type="button"
               class="btn btn-outline-primary btn-lg ms-auto m-3"
               data-bs-toggle="button"
+              name="{{artist.name}}"
+              value="{{artist.id}}"
             >
               Select
             </button>
+            
+          </form>
           </div>
         </td>
       </tr>
+    <!-- </form> -->
       {% endfor %}
     </tbody>
   
 </table>
+<button type="submit" class="btn btn-lg btn-primary m-3" style="position:fixed;bottom:3px;right:3px">Submit</button>
+</form>
 
-<button type="submit" class="btn btn-primary m-3" style="position:fixed;bottom:3px;right:3px">Submit</button>
+<!-- <button type="submit" class="btn btn-lg btn-primary m-3" style="position:fixed;bottom:3px;right:3px">Submit</button> -->
 <br>
 <br>
 <br>
