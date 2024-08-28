@@ -32,14 +32,35 @@ $('#table').on('click-row.bs.table', function (e, row, $element, field) {
 {% endblock %} {% block content %}
 <body onload="clicker()">
 <h1 class="m-3 text-center">New Music</h1>
-{% if not newMusicList %}
+{% if not userTags %}
 <p class="m-3 text-center select-row">
   Please add artists to track either by 
   <a href="track-artists">playlist</a> or <a href="track">individually</a>.
 </p>
 {% endif %}
+
+<form class="m-3" action="/newmusic" method="POST">
+<div class="d-flex">
+{% for tag in userTags %}
+<input type="checkbox" class="btn-check" id="{{tag}}" name="{{tag}}" value="tagFilter">
+<label class="btn btn-outline-primary m-1" for="{{tag}}">{{tag}}</label>
+{% endfor %}
+<button type="submit" class="btn btn-primary ms-auto">Submit</button>
+</div>
+<div class="form-text">Please select one or more tags to show associated music.</div>
+</form>
+
+<!-- <input type="checkbox" class="btn-check" id="2">
+<label class="btn btn-outline-primary" for="2">Test</label> -->
+
+
+  <!-- <div class="form-check form-check-inline">
+  <input class="form-check-input" type="checkbox" id="" value="">
+  <label class="form-check-label" for="">Test</label>
+</div> -->
+</form>
 <!-- <form action="#" method="POST"> -->
-  <form action="/newmusic" method="post">
+  <form action="/newmusic" method="POST">
 <table data-toggle="table" class="mb-5">
   <thead>
     <tr>
@@ -48,7 +69,8 @@ $('#table').on('click-row.bs.table', function (e, row, $element, field) {
       <th data-sortable="true">Album Name</th>
       <th data-sortable="true" id="defaultsort">Release Date</th>
       <th data-sortable="true">Album Type</th>
-      <th data-sortable="true">Flag</th>
+      <th data-sortable="true">Tag</th>
+      <!-- <th data-sortable="true">Flag</th> -->
     </tr>
   </thead>
   <tbody>
@@ -63,8 +85,9 @@ $('#table').on('click-row.bs.table', function (e, row, $element, field) {
       <td>{{newMusic.albumName}}</td>
       <td>{{newMusic.date}}</td>
       <td>{{newMusic.type}}</td>
-      <td><input type="checkbox" class="btn-check" id="{{newMusic.albumID}}" name="{{newMusic.albumID}}" autocomplete="off">
-      <label class="btn btn-outline-primary" for="{{newMusic.albumID}}" name="{{newMusic.albumID}}">Flag</label></td>
+      <td>{{newMusic.tag}}</td>
+      <!-- <td><input type="checkbox" class="btn-check" id="{{newMusic.albumID}}" name="{{newMusic.albumID}}" autocomplete="off"> -->
+      <!-- <label class="btn btn-outline-primary" for="{{newMusic.albumID}}" name="{{newMusic.albumID}}">Flag</label></td> -->
     </tr>
 
   <!-- </label> -->
@@ -75,7 +98,7 @@ $('#table').on('click-row.bs.table', function (e, row, $element, field) {
     </tr> -->
   </tbody>
 </table>
-<button type="submit" class="btn btn-primary m-3" type="submit" style="position:fixed; bottom:3px;right:3px" >Submit</button>
+<!-- <button type="submit" class="btn btn-primary m-3" type="submit" style="position:fixed; bottom:3px;right:3px" >Submit</button> -->
 </form>
 <br>
 <br>

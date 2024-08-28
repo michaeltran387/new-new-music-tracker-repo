@@ -21,17 +21,24 @@
 
     <button type="submit" name="test3" value="test3">Submit me</button>
 </form> -->
-<form action="/newmusic" method="POST">
-  <h7 class="m-3">Please assign a tag or multiple tags to associate with the selected artists.</h7>
+<form action="/newmusic" class="m-2" method="POST">
+  <div>
+  <h7 class="m-2">Please assign a tag or multiple tags to associate with the selected artists.</h7>
+</div>
 {% if userTags %}
 {% for tag in userTags %}
-<p class="m-3">{{tag.tag}}</p>
+<input type="checkbox" class="btn-check" id="{{tag}}" name="{{tag}}" value="userTag">
+<label class="btn btn-outline-primary my-2 mx-1" for="{{tag}}">{{tag}}</label>
 {% endfor %}
 {% endif %}
 
-<div class="m-3">
-  <label for="newTag" class="form-label">New Tag</label>
+<div class="row m-2">
+  <!-- <div class="col-sm-2"> -->
+  <label for="newTag" class="col-auto col-form-label">New Tag: </label>
+<!-- </div> -->
+  <div class="col-sm-11">
   <input type="text" id="newTag" class="form-control" name="newTag">
+</div>
 </div>
 
 <table data-toggle="table">

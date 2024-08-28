@@ -17,7 +17,7 @@ class SearchResultTrack:
 
 
 class NewMusic:
-    def __init__(self, artistName, albumName, picture, date, type, flag, albumID):
+    def __init__(self, artistName, albumName, picture, date, type, flag, albumID, tag):
         self.artistName = artistName
         self.albumName = albumName
         self.picture = picture
@@ -25,6 +25,7 @@ class NewMusic:
         self.type = type
         self.flag = flag
         self.albumID = albumID
+        self.tag = tag
 
 
 class UserPlaylists:
@@ -40,6 +41,11 @@ class Artist:
         self.id = id
         self.name = name
         self.image = image
+
+
+# class Tags:
+#     def __init__(self, tags)
+#         self.tags = tags
 
 
 # class UserTags(db.Model):
@@ -332,6 +338,20 @@ def newmusic():
 
         if not trackedArtistsList:
             return render_template("/newmusic.html")
+
+        #  userTags = [
+        #     tag
+        #     for tag in db.session.query(AddedArtists.tag)
+        #     .filter_by(user_id=current_user.id)
+        #     .distinct()
+        # ]
+
+        userTags = []
+        for artist in trackedArtistsList:
+            if artist.tag not in userTags:
+                userTags.append(artist.tag)
+        # print(userTags)
+        return render_template("/newmusic.html", userTags=userTags)
         # print(trackedArtistsList)
         # print(type(trackedArtists.all()))
         # test = trackedArtists.all()
@@ -362,15 +382,16 @@ def newmusic():
             r = requests.get(endpoint, headers=headers)
             # print(r.json())
 
-            # class NewMusic:
-            #     def __init__(self, artistName, albumName, picture, date, type, flag, albumID):
-            #         self.artistName = artistName
-            #         self.albumName = albumName
-            #         self.picture = picture
-            #         self.date = date
-            #         self.type = type
-            #         self.flag = flag
-            #         self.albumID = albumID
+            #         class NewMusic:
+            # def __init__(self, artistName, albumName, picture, date, type, flag, albumID, tag):
+            #     self.artistName = artistName
+            #     self.albumName = albumName
+            #     self.picture = picture
+            #     self.date = date
+            #     self.type = type
+            #     self.flag = flag
+            #     self.albumID = albumID
+            #     self.tag = tag
 
             for i in range(20):
                 newMusicList.append(
@@ -382,6 +403,7 @@ def newmusic():
                         r.json()["items"][i]["album_type"],
                         False,
                         r.json()["items"][i]["id"],
+                        artist.tag,
                     )
                 )
         # print(newMusicList[0].flag)
@@ -397,7 +419,77 @@ def newmusic():
         return render_template("newmusic.html", newMusicList=newMusicList)
     if request.method == "POST":
 
-        if not request.form["newTag"]:
+        if "tagFilter" in list(request.form.values()):
+            # print(list(request.form.keys()))
+            # print(list(request.form.keys())[0])
+
+            tagList = list(request.form.keys())
+            print(tagList)
+            artistList = []
+
+            for tag in tagList:
+
+                taggedArtists = db.session.execute(
+                    db.select(AddedArtists)
+                    .where(AddedArtists.user_id == current_user.id)
+                    .where(AddedArtists.tag == tag)
+                ).scalars()
+
+                for artist in taggedArtists.all():
+                    artistList.append(artist)
+
+            # return redirect("/newmusic")
+
+            # if not trackedArtistsList:
+            #     return render_template("newmusic.html")
+
+            newMusicList = []
+            for artist in artistList:
+
+                endpoint = (
+                    "https://api.spotify.com/v1/artists/" + artist.artist_id + "/albums"
+                )
+
+                r = requests.get(endpoint, headers=headers)
+
+                for i in range(20):
+                    newMusicList.append(
+                        NewMusic(
+                            artist.name,
+                            r.json()["items"][i]["name"],
+                            r.json()["items"][i]["images"][0]["url"],
+                            r.json()["items"][i]["release_date"],
+                            r.json()["items"][i]["album_type"],
+                            False,
+                            r.json()["items"][i]["id"],
+                            artist.tag,
+                        )
+                    )
+
+            def returnDate(newMusicObj):
+                return newMusicObj.date
+
+            newMusicList.sort(reverse=True, key=returnDate)
+
+            userTags = [
+                tag
+                for tag in db.session.query(AddedArtists.tag)
+                .filter_by(user_id=current_user.id)
+                .distinct()
+            ]
+
+            print(userTags)
+
+            return render_template(
+                "/newmusic.html", newMusicList=newMusicList, userTags=userTags
+            )
+
+        # if not trackedArtistsList:
+        #     return render_template("/newmusic.html")
+
+        print(request.form)
+
+        if (not request.form["newTag"]) and ("userTag" not in request.form.values()):
             # print("there is not a new tag in here")
             flash(
                 "Please make sure to assign at least one tag to the added artists.",
@@ -610,16 +702,30 @@ def trackArtistsCallback():
         #     db.select(AddedArtists.tag).filter_by(user_id=current_user.id)
         # ).scalars()
         # userTags = userTags.all()
-        userTags = [
-            tag
-            for tag in db.session.query(AddedArtists.tag)
-            .filter_by(user_id=current_user.id)
-            .distinct()
-        ]
-        print(userTags)
-        print(userTags[0])
-        print(type(userTags[0]))
 
+        userTags = db.session.execute(
+            db.select(AddedArtists.tag).where(AddedArtists.user_id == current_user.id)
+        )
+        userTags = userTags.scalars().unique().all()
+        # print(userTags)
+        # userTagsList = []
+        # for tag in userTags:
+        #     print(type(tag))
+        #     test = tag.strip("(',)")
+        #     print(test)
+        #     userTagsList.append(test)
+
+        # userTags = [
+        #     tag
+        #     for tag in db.session.query(AddedArtists.tag)
+        #     .filter_by(user_id=current_user.id)
+        #     .distinct()
+        # ]
+        # print(userTags)
+        # print(userTags[0])
+        # print(type(userTags[0]))
+
+        # return render_template("track-artists-callback.html", artistList=artistList)
         return render_template(
             "track-artists-callback.html", artistList=artistList, userTags=userTags
         )
