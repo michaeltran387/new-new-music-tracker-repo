@@ -36,6 +36,15 @@ class AddedArtists(db.Model):
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     artist_id: Mapped[str] = mapped_column(nullable=False)
     name: Mapped[str] = mapped_column(nullable=False)
+    tag: Mapped[str] = mapped_column(nullable=False)
+
+
+# class UserTags(db.Model):
+#     __tablename__ = "userTags"
+
+#     id: Mapped[int] = mapped_column(primary_key=True)
+#     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+#     tag: Mapped[str] = mapped_column(nullable=False)
 
 
 class FlaggedMusic(db.Model):

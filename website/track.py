@@ -42,7 +42,35 @@ class Artist:
         self.image = image
 
 
-def addArtist(name, id):
+# class UserTags(db.Model):
+#     __tablename__ = "userTags"
+
+#     id: Mapped[int] = mapped_column(primary_key=True)
+#     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+#     tag: Mapped[str] = mapped_column(nullable=False)
+
+
+# def addTag(tag):
+#     check = db.session.execute(
+#         db.select(UserTags.tag).where(UserTags.user_id == current_user.id)
+#     ).scalars()
+
+#     if tag in check.all():
+#         # print("tag is already in")
+#         return None
+
+#     addTag = UserTags(user_id=current_user.id, tag=tag)
+#     db.session.add(addTag)
+#     db.session.commit()
+
+#     check = db.session.execute(
+#         db.select(UserTags.tag).where(UserTags.user_id == current_user.id)
+#     ).scalars()
+#     print(check.all())
+#     return None
+
+
+def addArtist(name, id, tag):
 
     check = db.session.execute(
         db.select(AddedArtists.artist_id).where(AddedArtists.user_id == current_user.id)
@@ -52,7 +80,7 @@ def addArtist(name, id):
         # print("this artist is already in the user's addedartists database")
         return None
 
-    addArtist = AddedArtists(user_id=current_user.id, artist_id=id, name=name)
+    addArtist = AddedArtists(user_id=current_user.id, artist_id=id, name=name, tag=tag)
     db.session.add(addArtist)
     db.session.commit()
 
@@ -304,7 +332,7 @@ def newmusic():
 
         if not trackedArtistsList:
             return render_template("/newmusic.html")
-        print(trackedArtistsList)
+        # print(trackedArtistsList)
         # print(type(trackedArtists.all()))
         # test = trackedArtists.all()
         # # print(trackedArtists.all()[0])
@@ -358,14 +386,63 @@ def newmusic():
                 )
         # print(newMusicList[0].flag)
 
+        # print(newMusicList)
+
+        def returnDate(newMusicObj):
+            return newMusicObj.date
+
+        newMusicList.sort(reverse=True, key=returnDate)
+        # print(newMusicList)
+
         return render_template("newmusic.html", newMusicList=newMusicList)
     if request.method == "POST":
+
+        if not request.form["newTag"]:
+            # print("there is not a new tag in here")
+            flash(
+                "Please make sure to assign at least one tag to the added artists.",
+                category="error",
+            )
+            return redirect("track-artists")
+
         print(request.form)
-        print(list(request.form.keys()))
-        print(list(request.form.items()))
-        print(list(request.form.items())[0][0])
-        for artist in list(request.form.items()):
-            addArtist(artist[0], artist[1])
+        newTag = request.form["newTag"]
+        # addTag(newTag)
+        # print(newTag)
+        artistsDict = request.form.to_dict()
+        del artistsDict["newTag"]
+        print(artistsDict)
+        if not artistsDict:
+            flash(
+                "Please make sure to select at least one artist.",
+                category="error",
+            )
+            return redirect("track-artists")
+
+        # print(request.form["newTag"])
+        # print(request.form["artist"])
+        # artistList = request.form["artist"]
+        # print(type(artistList))
+        # artistList = artistList.replace("'", "")
+        # artistList = artistList.strip("()")
+        # artistList = artistList.split(",")
+        # artistList[1] = artistList[1].strip()
+        # # artistList = artistList.replace("'", "")
+        # print(artistList)
+
+        # print(request.form["artist"])
+        # print(type(request.form["artist"]))
+
+        # print(artistList)
+        # print(list(request.form["artist"]))
+        # print(request.form["artist"][0])
+        # print(list(request.form.keys()))
+        # print(list(request.form.items()))
+        # print(list(request.form.items())[1][0])
+        print(list(artistsDict.keys()))
+
+        for artistKey in list(artistsDict.keys()):
+            addArtist(artistKey, artistsDict[artistKey], newTag)
         # addArtist()
 
         return redirect("/newmusic")
@@ -529,7 +606,23 @@ def trackArtistsCallback():
             else:
                 r = requests.get(r.json()["next"], headers=headers, params=params)
 
-        return render_template("track-artists-callback.html", artistList=artistList)
+        # userTags = db.session.execute(
+        #     db.select(AddedArtists.tag).filter_by(user_id=current_user.id)
+        # ).scalars()
+        # userTags = userTags.all()
+        userTags = [
+            tag
+            for tag in db.session.query(AddedArtists.tag)
+            .filter_by(user_id=current_user.id)
+            .distinct()
+        ]
+        print(userTags)
+        print(userTags[0])
+        print(type(userTags[0]))
+
+        return render_template(
+            "track-artists-callback.html", artistList=artistList, userTags=userTags
+        )
 
 
 # @track_blueprint.route("/test", methods=["GET"])

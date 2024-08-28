@@ -22,6 +22,18 @@
     <button type="submit" name="test3" value="test3">Submit me</button>
 </form> -->
 <form action="/newmusic" method="POST">
+  <h7 class="m-3">Please assign a tag or multiple tags to associate with the selected artists.</h7>
+{% if userTags %}
+{% for tag in userTags %}
+<p class="m-3">{{tag.tag}}</p>
+{% endfor %}
+{% endif %}
+
+<div class="m-3">
+  <label for="newTag" class="form-label">New Tag</label>
+  <input type="text" id="newTag" class="form-control" name="newTag">
+</div>
+
 <table data-toggle="table">
   <thead>
     <th data-width="150"></th>
