@@ -39,12 +39,12 @@ class AddedArtists(db.Model):
     tag: Mapped[str] = mapped_column(nullable=False)
 
 
-# class UserTags(db.Model):
-#     __tablename__ = "userTags"
+class UserTags(db.Model):
+    __tablename__ = "userTags"
 
-#     id: Mapped[int] = mapped_column(primary_key=True)
-#     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-#     tag: Mapped[str] = mapped_column(nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    tag: Mapped[str] = mapped_column(nullable=False)
 
 
 class FlaggedMusic(db.Model):
