@@ -1,33 +1,6 @@
 {% extends "base.html" %} {% block title %}
 <title>New Music</title>
 <head>
-  
-  <!-- <style>
-  .table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
-    background-color: lightgreen;
-  }
-</style> -->
-<!-- <script
-    src="https://code.jquery.com/jquery-3.7.1.js"
-    integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
-    crossorigin="anonymous"></script>
-<script>
-// $(document).ready(function() {
-//   $(".select-row").click(function() {
-//     // $(".select-row").hide();
-//     alert("The table row was clicked.");
-//   });
-//   });
-$(document).ready(function () {
-        $(".select-row").click(function () {
-          $(".select-row").hide();
-        });
-      });
-
-$('#table').on('click-row.bs.table', function (e, row, $element, field) {
-  $(row).hide();
-})
-</script> -->
 </head>
 {% endblock %} {% block content %}
 <body onload="clicker()">
@@ -44,22 +17,20 @@ $('#table').on('click-row.bs.table', function (e, row, $element, field) {
 <input type="checkbox" class="btn-check" id="{{tag}}" name="{{tag}}" value="tagFilter">
 <label class="btn btn-outline-primary m-1" for="{{tag}}">{{tag}}</label>
 {% endfor %}
-<button type="submit" class="btn btn-primary ms-auto">Submit</button>
+<button type="submit" class="btn btn-primary ms-auto">Filter</button>
 </div>
 <div class="form-text">Please select one or more tags to show associated music.</div>
 </form>
 
-<!-- <input type="checkbox" class="btn-check" id="2">
-<label class="btn btn-outline-primary" for="2">Test</label> -->
-
-
-  <!-- <div class="form-check form-check-inline">
-  <input class="form-check-input" type="checkbox" id="" value="">
-  <label class="form-check-label" for="">Test</label>
-</div> -->
-</form>
-<!-- <form action="#" method="POST"> -->
-  <form action="/newmusic" method="POST">
+<form action="/newmusic" method="POST">
+  {% if newMusicList %}
+  <div class="m-3">
+<select name="addToPlaylistSelect" class="form-select">
+  <option value="newPlaylist">Add to New Playlist</option>
+  <option value="existingPlaylist">Add to Existing Playlist</option>
+</select>
+</div>
+{% endif %}
 <table data-toggle="table" class="mb-5">
   <thead>
     <tr>
@@ -69,13 +40,14 @@ $('#table').on('click-row.bs.table', function (e, row, $element, field) {
       <th data-sortable="true" id="defaultsort">Release Date</th>
       <th data-sortable="true">Album Type</th>
       <th data-sortable="true">Tag</th>
-      <!-- <th data-sortable="true">Flag</th> -->
+      <th data-sortable="true">Add to Playlist</th>
     </tr>
   </thead>
   <tbody>
     {% for newMusic in newMusicList %}
     <!-- <input type="checkbox" class="btn-check" id="btn-check-outlined" autocomplete="off">
     <label class="btn btn-outline-primary" for="btn-check-outlined"> -->
+      
     <tr>
       <td>
         <img src="{{newMusic.picture}}" style="width:100px;height:100px"></a>
@@ -85,19 +57,18 @@ $('#table').on('click-row.bs.table', function (e, row, $element, field) {
       <td>{{newMusic.date}}</td>
       <td>{{newMusic.type}}</td>
       <td>{{newMusic.tag}}</td>
-      <!-- <td><input type="checkbox" class="btn-check" id="{{newMusic.albumID}}" name="{{newMusic.albumID}}" autocomplete="off"> -->
-      <!-- <label class="btn btn-outline-primary" for="{{newMusic.albumID}}" name="{{newMusic.albumID}}">Flag</label></td> -->
-    </tr>
-
-  <!-- </label> -->
+      
+      <td><div class="d-flex justify-content-center"><input type="checkbox" class="btn-check" id="{{newMusic.albumID}}" name="{{newMusic.albumID}}" value="albumID" autocomplete="off">
+      <label class="btn btn-outline-primary m-3 btn-lg" for="{{newMusic.albumID}}" name="{{newMusic.albumID}}">Add</label></div></td>
+    
     {% endfor %}
-
-    <!-- <tr>
-      <td>Cannonball Adderley</td>
-    </tr> -->
   </tbody>
 </table>
-<!-- <button type="submit" class="btn btn-primary m-3" type="submit" style="position:fixed; bottom:3px;right:3px" >Submit</button> -->
+{% if newMusicList %}
+<div class="m-3" style="position:fixed; bottom:3px; right:3px">
+  <button type="submit" class="btn btn-primary m-3" type="submit">Submit</button>
+</div>
+{% endif %}
 </form>
 <br>
 <br>
