@@ -3,7 +3,14 @@
 <head>
 </head>
 {% endblock %} {% block content %}
-<body onload="clicker()">
+
+<select id="test" onchange="testFunction()">
+  <option value="test1">test1</option>
+    <option value="test2">test2</option>
+</select>
+
+<div id="test3">Toggle hide and show</div>
+
 <h1 class="m-3 text-center">New Music</h1>
 {% if not userTags %}
 <p class="m-3 text-center select-row">
@@ -29,6 +36,8 @@
   <option value="newPlaylist">Add to New Playlist</option>
   <option value="existingPlaylist">Add to Existing Playlist</option>
 </select>
+
+<input type="text" id="newPlaylistName">
 </div>
 {% endif %}
 <table data-toggle="table" class="mb-5">
@@ -66,7 +75,7 @@
 </table>
 {% if newMusicList %}
 <div class="m-3" style="position:fixed; bottom:3px; right:3px">
-  <button type="submit" class="btn btn-primary m-3" type="submit">Submit</button>
+  <button type="submit" class="btn btn-primary btn-lg m-3" type="submit">Submit</button>
 </div>
 {% endif %}
 </form>
@@ -76,9 +85,16 @@
 <!-- </form> -->
 
 <script>
-// window.addEventListener("DOMContentLoaded", clicker() { 
-//   document.getElementById("defaultsort").click()
-// }, false);
+function testFunction() {
+  var x = document.getElementById("addToPlaylistSelect").value;
+  var y = document.getElementById("newPlaylistName")
+  if (x === "addToNewPlaylist") {
+    y.style.display = "block";
+  }
+  else {
+    y.style.display = "none";
+  }
+}
 </script>
 </body>
 {% endblock %}

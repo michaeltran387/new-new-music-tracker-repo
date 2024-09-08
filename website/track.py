@@ -219,10 +219,10 @@ def newmusic():
 
             if request.form["addToPlaylistSelect"] == "newPlaylist":
 
-                return render_template("newmusic.html")
+                return render_template("add-to-new-playlist.html")
             if request.form["addToPlaylistSelect"] == "existingPlaylist":
 
-                return render_template("newmusic.html")
+                return render_template("add-to-existing-playlist.html")
 
         if "newTag" in request.form.keys():
             newTag = request.form["newTag"]
