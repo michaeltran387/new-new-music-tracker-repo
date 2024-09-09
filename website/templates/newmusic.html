@@ -4,12 +4,12 @@
 </head>
 {% endblock %} {% block content %}
 
-<select id="test" onchange="testFunction()">
+<!-- <select id="test" onchange="testFunction()">
   <option value="test1">test1</option>
     <option value="test2">test2</option>
-</select>
+</select> -->
 
-<div id="test3">Toggle hide and show</div>
+<!-- <div id="test3">Toggle hide and show</div> -->
 
 <h1 class="m-3 text-center">New Music</h1>
 {% if not userTags %}
@@ -32,13 +32,16 @@
 <form action="/newmusic" method="POST">
   {% if newMusicList %}
   <div class="m-3">
-<select name="addToPlaylistSelect" class="form-select">
+<select id="addToPlaylistSelect" class="form-select" name="addToPlaylistSelect" onchange="testFunction()">
   <option value="newPlaylist">Add to New Playlist</option>
   <option value="existingPlaylist">Add to Existing Playlist</option>
 </select>
-
-<input type="text" id="newPlaylistName">
 </div>
+<div class="form-floating m-3" id="newPlaylistNameDiv">
+  <input type="text" class="form-control" id="newPlaylistName" name="newPlaylistName">
+  <label for="newPlaylistName">New Playlist Name </label>
+</div>
+
 {% endif %}
 <table data-toggle="table" class="mb-5">
   <thead>
@@ -82,16 +85,16 @@
 <br>
 <br>
 <br>
-<!-- </form> -->
+
 
 <script>
 function testFunction() {
   var x = document.getElementById("addToPlaylistSelect").value;
-  var y = document.getElementById("newPlaylistName")
-  if (x === "addToNewPlaylist") {
+  var y = document.getElementById("newPlaylistNameDiv")
+  if (x == "newPlaylist") {
     y.style.display = "block";
   }
-  else {
+  if (x == "existingPlaylist") {
     y.style.display = "none";
   }
 }

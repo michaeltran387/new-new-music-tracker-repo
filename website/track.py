@@ -146,6 +146,8 @@ def newmusic():
 
     if request.method == "POST":
 
+        print(request.form)
+
         if "tagFilter" in list(request.form.values()):
 
             tagList = list(request.form.keys())
@@ -215,14 +217,15 @@ def newmusic():
                 "/newmusic.html", newMusicList=newMusicList, userTags=userTags
             )
 
-        if "addToPlaylistSelect" in request.form.keys():
+        if request.form["addToPlaylistSelect"] == "newPlaylist":
+            if not request.form["newPlaylistName"]:
+                flash("Please enter a new playlist name.", category="error")
+                return redirect("/newmusic")
+                # return render_template("add-to-new-playlist.html")
 
-            if request.form["addToPlaylistSelect"] == "newPlaylist":
+        if request.form["addToPlaylistSelect"] == "existingPlaylist":
 
-                return render_template("add-to-new-playlist.html")
-            if request.form["addToPlaylistSelect"] == "existingPlaylist":
-
-                return render_template("add-to-existing-playlist.html")
+            pass
 
         if "newTag" in request.form.keys():
             newTag = request.form["newTag"]
