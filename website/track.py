@@ -4,6 +4,7 @@ from requests.auth import HTTPBasicAuth
 from .models import *
 from flask_login import login_required, current_user
 import base64
+import json
 
 track_blueprint = Blueprint("track", __name__)
 
@@ -221,7 +222,57 @@ def newmusic():
             if not request.form["newPlaylistName"]:
                 flash("Please enter a new playlist name.", category="error")
                 return redirect("/newmusic")
-                # return render_template("add-to-new-playlist.html")
+            else:
+                r = requests.get("https://api.spotify.com/v1/me", headers=headers)
+                spotifyUserID = r.json()["id"]
+
+                createPlaylistEndpoint = (
+                    "https://api.spotify.com/v1/users/" + spotifyUserID + "/playlists"
+                )
+                # print(request.form)
+                newPlaylistName = request.form["newPlaylistName"]
+                data = {"name": newPlaylistName}
+
+                r = requests.post(createPlaylistEndpoint, headers=headers, json=data)
+                newPlaylistID = r.json()["id"]
+
+                albumIDDict = request.form.to_dict()
+                del albumIDDict["addToPlaylistSelect"]
+                del albumIDDict["newPlaylistName"]
+
+                URIArray = []
+
+                params = {"limit": 50}
+
+                for albumID in albumIDDict.keys():
+                    getAlbumTracksEndpoint = (
+                        "https://api.spotify.com/v1/albums/{}/tracks".format(albumID)
+                    )
+                    r = requests.get(
+                        getAlbumTracksEndpoint, headers=headers, params=params
+                    )
+                    for i in range(len(r.json()["items"])):
+                        URIArray.append(r.json()["items"][i]["uri"])
+
+                print(URIArray)
+
+                addItemsToPlaylistEndpoint = (
+                    "https://api.spotify.com/v1/playlists/{}/tracks".format(
+                        newPlaylistID
+                    )
+                )
+
+                data = {"uris": URIArray}
+
+                r = requests.post(
+                    addItemsToPlaylistEndpoint, headers=headers, json=data
+                )
+
+                flash(
+                    "Selected albums have been succesfully added to a new playlist.",
+                    category="success",
+                )
+                return redirect("/newmusic")
 
         if request.form["addToPlaylistSelect"] == "existingPlaylist":
 
@@ -333,25 +384,32 @@ def trackArtists():
         r = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
         # print(headers)
         userPlaylists = []
-        for item in range(r.json()["total"]):
-            if not r.json()["items"][item]["images"][0]:
-                userPlaylists.append(
-                    UserPlaylists(
-                        r.json()["items"][item]["name"],
-                        r.json()["items"][item]["id"],
-                        "",
-                        r.json()["items"][item]["tracks"]["href"],
+        # print(r.json()["total"])
+        while True:
+            for item in range(r.json()["total"]):
+                if not r.json()["items"][item]["images"]:
+                    userPlaylists.append(
+                        UserPlaylists(
+                            r.json()["items"][item]["name"],
+                            r.json()["items"][item]["id"],
+                            "",
+                            r.json()["items"][item]["tracks"]["href"],
+                        )
                     )
-                )
+                else:
+                    userPlaylists.append(
+                        UserPlaylists(
+                            r.json()["items"][item]["name"],
+                            r.json()["items"][item]["id"],
+                            r.json()["items"][item]["images"][0]["url"],
+                            r.json()["items"][item]["tracks"]["href"],
+                        )
+                    )
+
+            if r.json()["next"] == None:
+                break
             else:
-                userPlaylists.append(
-                    UserPlaylists(
-                        r.json()["items"][item]["name"],
-                        r.json()["items"][item]["id"],
-                        r.json()["items"][item]["images"][0]["url"],
-                        r.json()["items"][item]["tracks"]["href"],
-                    )
-                )
+                r = requests.get(r.json()["next"], headers=headers)
 
         userPlaylistsOdd = []
         userPlaylistsEven = []
