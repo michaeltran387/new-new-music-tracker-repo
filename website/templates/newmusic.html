@@ -37,9 +37,67 @@
   <option value="existingPlaylist">Add to Existing Playlist</option>
 </select>
 </div>
+
 <div class="form-floating m-3" id="newPlaylistNameDiv">
   <input type="text" class="form-control" id="newPlaylistName" name="newPlaylistName">
   <label for="newPlaylistName">New Playlist Name </label>
+</div>
+ 
+<div class="d-flex flex-row m-3" id="existingPlaylistDiv" style="display: none">
+<div class="flex-fill">
+<table class="table" style="display:none" id="userPlaylists1">
+  <thead>
+    <tr>
+    <th>Playlist Art</th>
+    <th>Playlist Name</th>
+  </thead>
+  </tr>
+  <tbody>
+{% for playlist in userPlaylists1 %}
+<tr>
+<td class="text-center"><img src={{playlist.image}} style="width:50px"></td>
+<td>{{playlist.name}}</td>
+</tr>
+  </tbody>
+{% endfor %}
+</table>
+</div>
+<div class="flex-fill">
+<table class="table" style="display:none" id="userPlaylists2">
+  <thead>
+    <tr>
+    <th>Playlist Art</th>
+    <th>Playlist Name</th>
+  </thead>
+  </tr>
+  <tbody>
+{% for playlist in userPlaylists2 %}
+<tr>
+<td class="text-center"><img src={{playlist.image}} style="width:50px"></td>
+<td>{{playlist.name}}</td>
+</tr>
+  </tbody>
+{% endfor %}
+</table>
+</div>
+<div class="flex-fill">
+<table class="table" style="display:none" id="userPlaylists3">
+  <thead>
+    <tr>
+    <th>Playlist Art</th>
+    <th>Playlist Name</th>
+  </thead>
+  </tr>
+  <tbody>
+{% for playlist in userPlaylists3 %}
+<tr>
+<td class="text-center"><img src={{playlist.image}} style="width:50px"></td>
+<td>{{playlist.name}}</td>
+</tr>
+  </tbody>
+{% endfor %}
+</table>
+</div>
 </div>
 
 {% endif %}
@@ -88,16 +146,38 @@
 
 
 <script>
+  // $(document).ready(function(){
 function testFunction() {
   var x = document.getElementById("addToPlaylistSelect").value;
-  var y = document.getElementById("newPlaylistNameDiv")
+  var y = document.getElementById("newPlaylistNameDiv");
+  var z = document.getElementById("existingPlaylistDiv");
+  var a = document.getElementById("userPlaylists1");
+  var b = document.getElementById("userPlaylists2");
+  var c = document.getElementById("userPlaylists3");
   if (x == "newPlaylist") {
     y.style.display = "block";
-  }
+    z.style.display = "none";
+    a.style.display = "none";
+    b.style.display = "none";
+    c.style.display = "none";
+  };
+  
   if (x == "existingPlaylist") {
     y.style.display = "none";
-  }
+    z.style.display = "block";
+    a.style.display = "block";
+    b.style.display = "block";
+    c.style.display = "block";
+  };
+  
 }
+// })
+
+// $(document).ready(function(){
+//   console.log("ready");
+// });
+
+
 </script>
 </body>
 {% endblock %}

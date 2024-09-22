@@ -37,6 +37,13 @@ class UserPlaylists:
         self.tracks = tracks
 
 
+class UserPlaylists2:
+    def __init__(self, name, playlistID, image):
+        self.name = name
+        self.playlistID = playlistID
+        self.image = image
+
+
 class Artist:
     def __init__(self, id, name, image):
         self.id = id
@@ -149,6 +156,13 @@ def newmusic():
 
         print(request.form)
 
+        if not request.form:
+            flash(
+                "Please select one or more tags to show associated music.",
+                category="error",
+            )
+            return redirect("/newmusic")
+
         if "tagFilter" in list(request.form.values()):
 
             tagList = list(request.form.keys())
@@ -214,8 +228,62 @@ def newmusic():
                 .all()
             )
 
+            params = {"limit": "50"}
+
+            r = requests.get(
+                "https://api.spotify.com/v1/me/playlists",
+                headers=headers,
+                params=params,
+            )
+
+            userPlaylists = []
+
+            for playlist in range(len(r.json()["items"])):
+                if not r.json()["items"][playlist]["images"]:
+                    playlistObject = UserPlaylists2(
+                        r.json()["items"][playlist]["name"],
+                        r.json()["items"][playlist]["id"],
+                        "",
+                    )
+                else:
+                    playlistObject = UserPlaylists2(
+                        r.json()["items"][playlist]["name"],
+                        r.json()["items"][playlist]["id"],
+                        r.json()["items"][playlist]["images"][0]["url"],
+                    )
+                userPlaylists.append(playlistObject)
+
+            # for playlist in userPlaylists:
+            #     print(playlist.name)
+
+            # class UserPlaylists2:
+            #     def __init__(self, name, playlistID, image):
+            #         self.name = name
+            #         self.playlistID = playlistID
+            #         self.image = image
+
+            userPlaylists1 = []
+            userPlaylists2 = []
+            userPlaylists3 = []
+
+            for playlistObjectIndex in range(len(userPlaylists)):
+                if playlistObjectIndex % 3 == 1:
+                    userPlaylists1.append(userPlaylists[playlistObjectIndex])
+                if playlistObjectIndex % 3 == 2:
+                    userPlaylists2.append(userPlaylists[playlistObjectIndex])
+                if playlistObjectIndex % 3 == 0:
+                    userPlaylists3.append(userPlaylists[playlistObjectIndex])
+
+            # for x in userPlaylists1:
+            #     print(x.image)
+
             return render_template(
-                "/newmusic.html", newMusicList=newMusicList, userTags=userTags
+                "/newmusic.html",
+                newMusicList=newMusicList,
+                userTags=userTags,
+                userPlaylists1=userPlaylists1,
+                userPlaylists2=userPlaylists2,
+                userPlaylists3=userPlaylists3,
             )
 
         if request.form["addToPlaylistSelect"] == "newPlaylist":
