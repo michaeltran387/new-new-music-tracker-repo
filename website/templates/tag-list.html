@@ -1,8 +1,45 @@
 {% extends "base.html" %} {% block title %}
 <title>Tag List</title>
-<h1 class="m-3">Tag List</h1>
+<h1 class="m-3" style="text-align: center">Tag List</h1>
 {% endblock %} {% block content %}
 
-<p>This is where you see all your tags.</p>
+<div class="row m-2">
+  <label for="newTag" class="col-auto col-form-label">New Tag: </label>
+  <div class="col-sm-11">
+    <input type="text" id="newTag" class="form-control" name="newTag" />
+  </div>
+</div>
 
+<form action="/tag-list" method="POST">
+  {% for tagAndArtists in userTagsAndArtistsList %}
+  <table class="table table-hover">
+    <thead>
+      <tr class="table-primary" style="text-align: center">
+        <th>{{tagAndArtists.tag}}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for artist in tagAndArtists.artists %}
+      <tr>
+        <td>
+          <div class="d-flex justify-content-between">
+            <div>{{artist.name}}</div>
+            <div>
+              <button
+                type="submit"
+                class="btn btn-outline-danger"
+                name="{{artist.id}}"
+                value="{{artist.tag}}"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endfor%}
+</form>
 {% endblock %}

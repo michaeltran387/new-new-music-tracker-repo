@@ -18,40 +18,6 @@ class SearchResultTrack:
         self.id = id
 
 
-class NewMusic:
-    def __init__(self, artistName, albumName, picture, date, type, flag, albumID, tag):
-        self.artistName = artistName
-        self.albumName = albumName
-        self.picture = picture
-        self.date = date
-        self.type = type
-        self.flag = flag
-        self.albumID = albumID
-        self.tag = tag
-
-
-class UserPlaylists:
-    def __init__(self, name, playlistID, image, tracks):
-        self.name = name
-        self.playlistID = playlistID
-        self.image = image
-        self.tracks = tracks
-
-
-class UserPlaylists2:
-    def __init__(self, name, playlistID, image):
-        self.name = name
-        self.playlistID = playlistID
-        self.image = image
-
-
-class Artist:
-    def __init__(self, id, name, image):
-        self.id = id
-        self.name = name
-        self.image = image
-
-
 def addArtist(name, id, tag):
 
     check = db.session.execute(
@@ -190,6 +156,19 @@ def newmusic():
 
             params = {"include_groups": "album,single", "limit": limit}
 
+            class NewMusic:
+                def __init__(
+                    self, artistName, albumName, picture, date, type, flag, albumID, tag
+                ):
+                    self.artistName = artistName
+                    self.albumName = albumName
+                    self.picture = picture
+                    self.date = date
+                    self.type = type
+                    self.flag = flag
+                    self.albumID = albumID
+                    self.tag = tag
+
             for artist in artistList:
 
                 endpoint = (
@@ -240,6 +219,12 @@ def newmusic():
             )
 
             userPlaylists = []
+
+            class UserPlaylists2:
+                def __init__(self, name, playlistID, image):
+                    self.name = name
+                    self.playlistID = playlistID
+                    self.image = image
 
             for playlist in range(len(r.json()["items"])):
                 if not r.json()["items"][playlist]["images"]:
@@ -475,9 +460,16 @@ def trackArtists():
 
     if request.method == "GET":
         r = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
-        # print(headers)
+
         userPlaylists = []
-        # print(r.json()["total"])
+
+        class UserPlaylists:
+            def __init__(self, name, playlistID, image, tracks):
+                self.name = name
+                self.playlistID = playlistID
+                self.image = image
+                self.tracks = tracks
+
         while True:
             for item in range(r.json()["total"]):
                 if not r.json()["items"][item]["images"]:
@@ -542,6 +534,12 @@ def trackArtistsCallback():
 
         counter = 0
 
+        class Artist:
+            def __init__(self, id, name, image):
+                self.id = id
+                self.name = name
+                self.image = image
+
         while (r.json()["next"] != None) or (r.json()["previous"] == None):
             counter += 1
 
@@ -603,16 +601,30 @@ def trackArtistsCallback():
         )
 
 
-@track_blueprint.route("/tag-list", methods=["GET"])
+@track_blueprint.route("/tag-list", methods=["GET", "POST"])
 @login_required
 def tagList():
+
+    if request.method == "POST":
+        print(request.form)
+        AddedArtists.query.filter_by(id=list(request.form.keys())[0]).delete()
+        db.session.commit()
+        flash("Artist removed successfully.", category="success")
+
+        # result = (
+        #     AddedArtists.query.where(AddedArtists.user_id == current_user.id)
+        #     .where(AddedArtists.tag == list(request.form.values())[0])
+        #     .scalar()
+        # )
+        # print(result)
+        # if result == None:
 
     result = db.session.execute(
         db.select(UserTags.tag).where(UserTags.user_id == current_user.id)
     ).scalars()
 
     tagList = result.all()
-    print(tagList)
+    # print(tagList)
 
     artistList = []
 
@@ -626,14 +638,36 @@ def tagList():
             .scalars()
             .all()
         )
+        result.sort(key=lambda x: x.name)
         artistList.append(result)
 
-    def taggedArtistCount(x):
-        return len(x)
+    userTagsAndArtistsDict = {}
 
-    print(artistList)
+    for counter, tag in enumerate(tagList):
+        userTagsAndArtistsDict[tag] = artistList[counter]
 
-    return render_template("tag-list.html")
+    userTagsAndArtistsDict = {
+        k: v
+        for k, v in sorted(
+            userTagsAndArtistsDict.items(),
+            key=lambda item: len(item[1]),
+            reverse=True,
+        )
+    }
+
+    class UserTagsAndArtists:
+        def __init__(self, tag, artists):
+            self.tag = tag
+            self.artists = artists
+
+    userTagsAndArtistsList = []
+    for tag, artists in userTagsAndArtistsDict.items():
+        userTagsAndArtistsObj = UserTagsAndArtists(tag, artists)
+        userTagsAndArtistsList.append(userTagsAndArtistsObj)
+
+    return render_template(
+        "tag-list.html", userTagsAndArtistsList=userTagsAndArtistsList
+    )
 
 
 @track_blueprint.route("/track", methods=["GET", "POST"])

@@ -47,17 +47,9 @@ class UserTags(db.Model):
     tag: Mapped[str] = mapped_column(nullable=False)
 
 
-class FlaggedMusic(db.Model):
-    __tablename__ = "flaggedMusic"
+# class FlaggedMusic(db.Model):
+#     __tablename__ = "flaggedMusic"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    album_id: Mapped[str] = mapped_column(nullable=False)
-
-
-# artists_m2m = db.Table(
-#     "artists",
-#     # sqlalchemy.Column("id"), sa.ForeignKey(User.id), primary_key=True),
-#     sqlalchemy.Column("user_id", sqlalchemy.ForeignKey(User.id), primary_key=True),
-#     sqlalchemy.Column()
-# )
+#     id: Mapped[int] = mapped_column(primary_key=True)
+#     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+#     album_id: Mapped[str] = mapped_column(nullable=False)

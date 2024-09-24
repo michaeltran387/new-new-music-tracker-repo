@@ -43,55 +43,6 @@
   <label for="newPlaylistName">New Playlist Name </label>
 </div>
 
-<!-- <div class="d-flex flex-row m-3" id="existingPlaylistDiv" style="display: none">
-<table class="table" style="display:none" id="userPlaylists1">
-  <thead>
-    <tr>
-    <th>test</th>
-    <th>test</th>
-  </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>test</td>
-      <td>test</td>
-    </tr>
-  </tbody>
-</table>
-<table class="table" style="display:none" id="userPlaylists2">
-  <thead>
-    <tr>
-    <th>test</th>
-    <th>test</th>
-  </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>test</td>
-      <td>test</td>
-    </tr>
-  </tbody>
-</table>
-<table class="table" style="display:none" id="userPlaylists3">
-  <thead>
-    <tr>
-    <th>test</th>
-    <th>test</th>
-  </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>test</td>
-      <td>test</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-<div class="d-flex">
-  <div class="d-flex"></div>
-</div> -->
-
 <div class="d-flex flex-row m-3" id="existingPlaylistDiv" style="display: none">
 <form>
 <table class="table" style="display:none" id="userPlaylists1">
@@ -113,10 +64,6 @@
   <input type="radio" class="btn-check" name="userPlaylistID" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
   <label class="btn btn-outline-primary" for="{{playlist.playlistID}}">Select</label>
 </td>
-  <!-- <div class="d-flex justify-content-center align-items-center"><p></p> -->
-<!-- <input type="radio" class="btn-check" name="userPlaylistID" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}" style="position:absolute">
-<label class="btn btn-outline-primary" for="{{playlist.playlistID}}">Select</label> -->
-<!-- </td> -->
 </tr>
   </tbody>
 {% endfor %}
@@ -126,14 +73,20 @@
     <tr>
     <th style="width:20%">Playlist Art</th>
     <th class="text-center">Playlist Name</th>
+    <th class="text-center"></th>
   </thead>
   </tr>
   <tbody>
 {% for playlist in userPlaylists2 %}
 <tr>
-<td class="text-center" style="vertical-align:middle"><img src={{playlist.image}} style="width:50px"></td>
-<td class="text-center" style="vertical-align: middle">{{playlist.name}}</td>
-
+  <td style="text-align: center; vertical-align: center;"><img src={{playlist.image}} style="width:50px"></td>
+  <td style="text-align: center">
+    {{playlist.name}}
+  </td>
+  <td>
+    <input type="radio" class="btn-check" name="userPlaylistID" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
+    <label class="btn btn-outline-primary" for="{{playlist.playlistID}}">Select</label>
+  </td>
 </tr>
   </tbody>
 {% endfor %}
@@ -143,13 +96,20 @@
     <tr>
     <th style="width:20%">Playlist Art</th>
     <th class="text-center">Playlist Name</th>
+    <th class="text-center"></th>
   </thead>
   </tr>
   <tbody>
 {% for playlist in userPlaylists3 %}
 <tr>
-<td class="text-center"><img src={{playlist.image}} style="width:50px"></td>
-<td class="text-center">{{playlist.name}}</td>
+  <td style="text-align: center; vertical-align: center;"><img src={{playlist.image}} style="width:50px"></td>
+  <td style="text-align: center">
+    {{playlist.name}}
+  </td>
+  <td>
+    <input type="radio" class="btn-check" name="userPlaylistID" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
+    <label class="btn btn-outline-primary" for="{{playlist.playlistID}}">Select</label>
+  </td>
 </tr>
   </tbody>
 {% endfor %}
