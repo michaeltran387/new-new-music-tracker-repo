@@ -135,7 +135,6 @@ def newmusic():
         if "tagFilter" in list(request.form.values()):
 
             tagList = list(request.form.keys())
-            # print(tagList)
             artistList = []
 
             for tag in tagList:
@@ -265,96 +264,37 @@ def newmusic():
                 userPlaylists3=userPlaylists3,
             )
 
-        if "newTag" in request.form.keys():
-            newTag = request.form["newTag"]
+        if "userTag" not in request.form.values():
+            flash(
+                "Please make sure to assign at least one tag to the added artists.",
+                category="error",
+            )
+            return redirect("track-artists")
+
+        if "userTag" in request.form.values():
+
             requestDict = request.form.to_dict()
-            del requestDict["newTag"]
             tagList = []
 
-            if (not newTag) and ("userTag" not in request.form.values()):
-                # print("there is not a new tag in here")
-                flash(
-                    "Please make sure to assign at least one tag to the added artists.",
-                    category="error",
-                )
-                return redirect("track-artists")
+            for x in list(requestDict.values()):
+                if x == "userTag":
+                    tag = list(requestDict.keys())[
+                        list(requestDict.values()).index("userTag")
+                    ]
+                    tagList.append(tag)
+                    del requestDict[tag]
 
-            if newTag and "userTag" not in request.form.values():
-                check = (
-                    db.session.execute(
-                        db.select(UserTags.tag)
-                        .where(UserTags.user_id == current_user.id)
-                        .where(UserTags.tag == newTag)
-                    )
-                    .scalars()
-                    .all()
-                )
+        if not requestDict:
+            flash(
+                "Please make sure to select at least one artist.",
+                category="error",
+            )
+            return redirect("track-artists")
 
-                if check:
-                    pass
-                if not check:
-                    newTagObj = UserTags(user_id=current_user.id, tag=newTag)
-                    db.session.add(newTagObj)
-                    db.session.commit()
-
-            if not newTag and "userTag" in request.form.values():
-                for x in list(requestDict.values()):
-                    if x == "userTag":
-                        tag = list(requestDict.keys())[
-                            list(requestDict.values()).index("userTag")
-                        ]
-                        tagList.append(tag)
-                        del requestDict[tag]
-
-            if newTag and "userTag" in request.form.values():
-                check = (
-                    db.session.execute(
-                        db.select(UserTags.tag)
-                        .where(UserTags.user_id == current_user.id)
-                        .where(UserTags.tag == newTag)
-                    )
-                    .scalars()
-                    .all()
-                )
-
-                if check:
-                    pass
-                if not check:
-                    newTagObj = UserTags(user_id=current_user.id, tag=newTag)
-                    db.session.add(newTagObj)
-                    db.session.commit()
-
-                for x in list(requestDict.values()):
-                    if x == "userTag":
-                        tag = list(requestDict.keys())[
-                            list(requestDict.values()).index("userTag")
-                        ]
-                        tagList.append(tag)
-                        del requestDict[tag]
-
-            if not requestDict:
-                flash(
-                    "Please make sure to select at least one artist.",
-                    category="error",
-                )
-                return redirect("track-artists")
-
-            # print(list(requestDict.keys()))
-
-            if not tagList:
-                for artistKey in list(requestDict.keys()):
-                    addArtist(artistKey, requestDict[artistKey], newTag)
-            if tagList and not newTag:
-                for artistKey in list(requestDict.keys()):
-                    for tag in tagList:
-                        addArtist(artistKey, requestDict[artistKey], tag)
-            if tagList and newTag:
-                for artistKey in list(requestDict.keys()):
-                    addArtist(artistKey, requestDict[artistKey], newTag)
-                for artistKey in list(requestDict.keys()):
-                    for tag in tagList:
-                        addArtist(artistKey, requestDict[artistKey], tag)
-
+        if tagList:
+            for artistKey in list(requestDict.keys()):
+                for tag in tagList:
+                    addArtist(artistKey, requestDict[artistKey], tag)
             return redirect("/newmusic")
 
         if request.form["addToPlaylistSelect"] == "newPlaylist":
@@ -606,18 +546,66 @@ def trackArtistsCallback():
 def tagList():
 
     if request.method == "POST":
-        print(request.form)
-        AddedArtists.query.filter_by(id=list(request.form.keys())[0]).delete()
-        db.session.commit()
-        flash("Artist removed successfully.", category="success")
 
-        # result = (
-        #     AddedArtists.query.where(AddedArtists.user_id == current_user.id)
-        #     .where(AddedArtists.tag == list(request.form.values())[0])
-        #     .scalar()
-        # )
-        # print(result)
-        # if result == None:
+        print(request.form)
+
+        if "newTag" in request.form.keys():
+            result = (
+                db.session.execute(
+                    db.select(UserTags).where(UserTags.tag == request.form["newTag"])
+                )
+                .scalars()
+                .all()
+            )
+            if not result:
+                newTag = UserTags(user_id=current_user.id, tag=request.form["newTag"])
+                db.session.add(newTag)
+                db.session.commit()
+                flash("New tag successfully created.", category="success")
+            else:
+                flash("Tag already exists.", category="error")
+
+        if "editedTag" in request.form.keys():
+            result = (
+                db.session.execute(
+                    db.select(UserTags).where(UserTags.tag == request.form["editedTag"])
+                )
+                .scalars()
+                .all()
+            )
+            if result:
+                flash("The edited tag already exists.", category="error")
+            else:
+                result = (
+                    db.session.execute(
+                        db.select(UserTags).where(
+                            UserTags.tag == request.form["originalTag"]
+                        )
+                    )
+                    .scalars()
+                    .all()
+                )
+                result[0].tag = request.form["editedTag"]
+                db.session.commit()
+                flash("Tag name changed successfully.", category="success")
+                result = (
+                    db.session.execute(
+                        db.select(AddedArtists).where(
+                            AddedArtists.tag == request.form["originalTag"]
+                        )
+                    )
+                    .scalars()
+                    .all()
+                )
+                for artist in result:
+                    artist.tag = request.form["editedTag"]
+
+        if "removeTag" in request.form:
+            pass
+
+        # AddedArtists.query.filter_by(id=list(request.form.keys())[0]).delete()
+        # db.session.commit()
+        # flash("Artist removed successfully.", category="success")
 
     result = db.session.execute(
         db.select(UserTags.tag).where(UserTags.user_id == current_user.id)
