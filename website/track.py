@@ -744,46 +744,53 @@ def track():
                 return redirect("/track")
 
             requestDict = request.form.to_dict()
+            # print(requestDict)
 
-            # addedArtistsID = list(request.form.keys())[0]
+            tagCount = list(request.form.values()).count("selectedTag")
+            # print(tagCount)
 
-            # userArtists = db.session.execute(
-            #     db.select(AddedArtists.artist_id).where(
-            #         AddedArtists.user_id == current_user.id
-            #     )
-            # ).scalars()
+            tagList = []
+            for x in range(tagCount):
+                tagList.append(list(requestDict.keys())[0])
+                del requestDict[list(requestDict.keys())[0]]
 
-            # if addedArtistsID in userArtists.all():
-            #     flash("You are already tracking this artist.", category="success")
-            #     return render_template("track.html", searchResultList=searchResultList)
+            print(tagList)
+            print(requestDict)
 
-            # addArtist = AddedArtists(
-            #     user_id=current_user.id,
-            #     artist_id=list(request.form.keys())[0],
-            #     name=request.form.keys()[1],
-            # )
-            # db.session.add(addArtist)
-            # db.session.commit()
-            # flash("Artist has been successfully added.", category="success")
+            addedArtistID = list(requestDict.keys())[0]
 
-            # userArtists = db.session.execute(
-            #     db.select(AddedArtists.artist_id).where(
-            #         AddedArtists.user_id == current_user.id
-            #     )
-            # ).scalars()
-            # print(userArtists.all())
-
-            # userTags = (
-            #     db.session.execute(
-            #         db.select(UserTags.tag).where(UserTags.user_id == current_user.id)
-            #     )
-            #     .scalars()
-            #     .all()
-            # )
-
-        return render_template(
-            "track.html", searchResultList=searchResultList, userTags=userTags
-        )
+            for tag in tagList:
+                check = (
+                    db.session.execute(
+                        db.select(AddedArtists)
+                        .where(AddedArtists.user_id == current_user.id)
+                        .where(AddedArtists.artist_id == addedArtistID)
+                        .where(AddedArtists.tag == tag)
+                    )
+                    .scalars()
+                    .all()
+                )
+                if not check:
+                    addArtist = AddedArtists(
+                        user_id=current_user.id,
+                        artist_id=addedArtistID,
+                        name=list(requestDict.keys())[0],
+                        tag=tag,
+                    )
+                    db.session.add(addArtist)
+                    db.session.commit()
+                    flash(
+                        "Artist has been successfully added to {}.".format(tag),
+                        category="success",
+                    )
+                else:
+                    flash(
+                        "You are already tracking this artist in {}.".format(tag),
+                        category="success",
+                    )
+            return render_template(
+                "track.html", searchResultList=searchResultList, userTags=userTags
+            )
 
 
 # @track_blueprint.route("/test", methods=["GET"])
