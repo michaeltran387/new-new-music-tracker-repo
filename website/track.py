@@ -530,11 +530,13 @@ def trackArtistsCallback():
             else:
                 r = requests.get(r.json()["next"], headers=headers, params=params)
 
-        userTags = db.session.execute(
-            db.select(UserTags.tag).where(UserTags.user_id == current_user.id)
+        userTags = (
+            db.session.execute(
+                db.select(UserTags.tag).where(UserTags.user_id == current_user.id)
+            )
+            .scalars()
+            .all()
         )
-        # userTags = userTags.scalars().unique().all()
-        userTags = userTags.scalars().all()
 
         return render_template(
             "track-artists-callback.html", artistList=artistList, userTags=userTags
@@ -561,7 +563,7 @@ def tagList():
                 newTag = UserTags(user_id=current_user.id, tag=request.form["newTag"])
                 db.session.add(newTag)
                 db.session.commit()
-                flash("New tag successfully created.", category="success")
+                flash("New tag created successfully.", category="success")
             else:
                 flash("Tag already exists.", category="error")
 
@@ -601,18 +603,44 @@ def tagList():
                     artist.tag = request.form["editedTag"]
 
         if "removeTag" in request.form:
-            pass
+            result = (
+                db.session.execute(
+                    db.select(UserTags)
+                    .where(UserTags.user_id == current_user.id)
+                    .where(UserTags.tag == request.form["removeTag"])
+                )
+                .scalars()
+                .all()
+            )
+            print(result)
+            print(result[0].tag)
+            db.session.delete(result[0])
+            db.session.commit()
 
-        # AddedArtists.query.filter_by(id=list(request.form.keys())[0]).delete()
-        # db.session.commit()
-        # flash("Artist removed successfully.", category="success")
+            result = (
+                db.session.execute(
+                    db.select(AddedArtists)
+                    .where(AddedArtists.user_id == current_user.id)
+                    .where(AddedArtists.tag == request.form["removeTag"])
+                )
+                .scalars()
+                .all()
+            )
+            for artist in result:
+                db.session.delete(artist)
+            db.session.commit()
+            flash("Tag and artists deleted successfully.", category="success")
+
+        if "removeArtist" in request.form.keys():
+            AddedArtists.query.filter_by(id=request.form["removeArtist"]).delete()
+            db.session.commit()
+            flash("Artist removed successfully.", category="success")
 
     result = db.session.execute(
         db.select(UserTags.tag).where(UserTags.user_id == current_user.id)
     ).scalars()
 
     tagList = result.all()
-    # print(tagList)
 
     artistList = []
 
@@ -668,14 +696,15 @@ def track():
         return redirect("/")
 
     if request.method == "GET":
+
         return render_template("track.html")
     if request.method == "POST":
-        if "search" in request.form:
+        if "searchArtist" in request.form:
 
-            search = request.form.get("search")
+            searchArtist = request.form.get("searchArtist")
             type = ["artist"]
 
-            payload = {"q": search, "type": type}
+            payload = {"q": searchArtist, "type": type}
 
             r = requests.get(
                 "https://api.spotify.com/v1/search", params=payload, headers=headers
@@ -694,38 +723,67 @@ def track():
                     )
                 )
 
-            return render_template("track.html", searchResultList=searchResultList)
+            global userTags
+            userTags = (
+                db.session.execute(
+                    db.select(UserTags.tag).where(UserTags.user_id == current_user.id)
+                )
+                .scalars()
+                .all()
+            )
+
+            return render_template(
+                "track.html", searchResultList=searchResultList, userTags=userTags
+            )
         else:
 
-            addedArtistsID = list(request.form.keys())[0]
+            print(request.form)
 
-            userArtists = db.session.execute(
-                db.select(AddedArtists.artist_id).where(
-                    AddedArtists.user_id == current_user.id
-                )
-            ).scalars()
+            if "selectedTag" not in request.form.values():
+                flash("Please select a tag.", category="error")
+                return redirect("/track")
 
-            if addedArtistsID in userArtists.all():
-                flash("You are already tracking this artist.", category="success")
-                return render_template("track.html", searchResultList=searchResultList)
+            requestDict = request.form.to_dict()
 
-            addArtist = AddedArtists(
-                user_id=current_user.id,
-                artist_id=list(request.form.keys())[0],
-                name=request.form.keys()[1],
-            )
-            db.session.add(addArtist)
-            db.session.commit()
-            flash("Artist has been successfully added.", category="success")
+            # addedArtistsID = list(request.form.keys())[0]
 
-            userArtists = db.session.execute(
-                db.select(AddedArtists.artist_id).where(
-                    AddedArtists.user_id == current_user.id
-                )
-            ).scalars()
-            print(userArtists.all())
+            # userArtists = db.session.execute(
+            #     db.select(AddedArtists.artist_id).where(
+            #         AddedArtists.user_id == current_user.id
+            #     )
+            # ).scalars()
 
-        return render_template("track.html", searchResultList=searchResultList)
+            # if addedArtistsID in userArtists.all():
+            #     flash("You are already tracking this artist.", category="success")
+            #     return render_template("track.html", searchResultList=searchResultList)
+
+            # addArtist = AddedArtists(
+            #     user_id=current_user.id,
+            #     artist_id=list(request.form.keys())[0],
+            #     name=request.form.keys()[1],
+            # )
+            # db.session.add(addArtist)
+            # db.session.commit()
+            # flash("Artist has been successfully added.", category="success")
+
+            # userArtists = db.session.execute(
+            #     db.select(AddedArtists.artist_id).where(
+            #         AddedArtists.user_id == current_user.id
+            #     )
+            # ).scalars()
+            # print(userArtists.all())
+
+            # userTags = (
+            #     db.session.execute(
+            #         db.select(UserTags.tag).where(UserTags.user_id == current_user.id)
+            #     )
+            #     .scalars()
+            #     .all()
+            # )
+
+        return render_template(
+            "track.html", searchResultList=searchResultList, userTags=userTags
+        )
 
 
 # @track_blueprint.route("/test", methods=["GET"])

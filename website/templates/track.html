@@ -8,7 +8,7 @@
       type="search"
       placeholder="Artist Name"
       aria-label="Search"
-      name="search"
+      name="searchArtist"
     />
     <button class="btn btn-outline-success my-2 my-sm-0" type="submit">
       Search
@@ -16,55 +16,74 @@
   </div>
 </form>
 
-<!-- <legend style="text-align: center">Add Artists</legend>
-    <div class="container">
-      <div class="row">
-        <div class="col-auto">
-          <input
-            class="form-control mr-sm-2"
-            type="search"
-            placeholder="Artist Name"
-            aria-label="Search"
-            name="search"
-          />
-        </div>
-        <div class="col-auto">
-          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">
-            Search
-          </button>
-        </div>
-      </div>
-    </div> -->
-
-{% for searchResultItem in searchResultList %}
-<ul class="list-group list-group-horizontal">
-  <img
-    src="{{searchResultItem.picture}}"
-    class="list-group-item list-group-item-action"
-    style="height: 200px; width: 200px"
+<form action="/track" method="POST">
+  {% if userTags %} {% for tag in userTags %}
+  <input
+    type="checkbox"
+    class="btn-check"
+    id="{{tag}}"
+    value="selectedTag"
+    name="{{tag}}"
   />
-  <form action="#" method="POST">
-    <ul class="list-group">
-      <h5 class="m-3">{{searchResultItem.name}}</h5>
-      <a href="{{searchResultItem.link}}" class="mx-3">Spotify Link</a>
-      <input type="hidden" name="{{searchResultItem.id}}" />
-      <button type="submit" class="btn btn-outline-primary m-3">
-        Add Artist
-      </button>
-    </ul>
-  </form>
+  <label class="btn btn-outline-primary my-2 mx-1" for="{{tag}}">{{tag}}</label>
+  {% endfor %} {% endif %} {% if userTags %}
+  <div>
+    <h7 class="m-2"
+      >Please assign a tag or multiple tags to associate with the selected
+      artist.</h7
+    >
+  </div>
+  {% endif %} {% if searchResultList %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th style="width: 200px">Artist Art</th>
+        <th style="text-align: center">Artist Information</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for searchResultItem in searchResultList %}
 
-  <!-- <a href="#" class="list-group-item list-group-item-action">
-    <div class="d-flex w-100 justify-content-between">
-      <h5>{{searchResultItem.name}}</h5>
-    </div>
-     -->
-</ul>
-{% endfor %}
+      <tr>
+        <td>
+          <img
+            src="{{searchResultItem.picture}}"
+            class="list-group-item"
+            style="height: 150px; width: 150px"
+          />
+        </td>
+        <td>
+          <div
+            class="d-flex flex-column align-items-center"
+            style="text-align: center"
+          >
+            <h5 class="m-3">{{searchResultItem.name}}</h5>
+            <a href="{{searchResultItem.link}}" class="mx-3">Spotify Link</a>
+            <!-- <input
+              type="hidden"
+              name="artistID"
+              value="{{searchResultItem.id}}"
+            />
+            <input
+              type="hidden"
+              name="artistName"
+              value="{{searchResultItem.name}}"
+            /> -->
+            <button
+              type="submit"
+              class="btn btn-outline-primary m-3"
+              name="{{searchResultItem.name}}"
+              value="{{searchResultItem.id}}"
+            >
+              Add Artist
+            </button>
+          </div>
+        </td>
+      </tr>
 
-<!-- <ul class="list-group list-group-horizontal">
-  <a href="#" class="list-group-item list-group-item-action">test</a>
-  <a href="#" class="list-group-item list-group-item-action">test</a>
-</ul> -->
-
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</form>
 {% endblock %}
