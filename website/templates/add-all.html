@@ -16,24 +16,97 @@
   </div>
 </form>
 
-<form action="/trackIndividual" method="POST">
-  {% if userTags %} {% for tag in userTags %}
-  <input
-    type="checkbox"
-    class="btn-check"
-    id="{{tag}}"
-    value="selectedTag"
-    name="{{tag}}"
-  />
-  <label class="btn btn-outline-primary my-2 mx-1" for="{{tag}}">{{tag}}</label>
-  {% endfor %} {% endif %} {% if userTags %}
-  <div>
-    <h7 class="m-2"
-      >Please assign a tag or multiple tags to associate with the selected
-      artist.</h7
-    >
+<form action="/add-all" method="POST">
+
+  {% if userPlaylists1 %}
+    <div class="m-3">
+  <select id="addToPlaylistSelect" class="form-select" name="addToPlaylistSelect" onchange="testFunction()">
+    <option value="newPlaylist">Add to New Playlist</option>
+    <option value="existingPlaylist">Add to Existing Playlist</option>
+  </select>
   </div>
-  {% endif %} {% if searchResultList %}
+  
+  <div class="form-floating m-3" id="newPlaylistNameDiv">
+    <input type="text" class="form-control" id="newPlaylistName" name="newPlaylistName">
+    <label for="newPlaylistName">New Playlist Name </label>
+  </div>
+  
+  <div class="d-flex flex-row m-3" id="existingPlaylistDiv" style="display: none">
+  <table class="table" style="display:none" id="userPlaylists1">
+    <thead>
+      <tr>
+      <th class="text-center" style="width:20%">Playlist Art</th>
+      <th class="text-center">Playlist Name</th>
+      <th class="text-center"></th>
+    </thead>
+    </tr>
+    <tbody>
+  {% for playlist in userPlaylists1 %}
+  <tr>
+  <td style="text-align: center; vertical-align: center;"><img src={{playlist.image}} style="width:50px"></td>
+  <td style="text-align: center">
+    {{playlist.name}}
+  </td>
+  <td>
+    <input type="radio" class="btn-check" name="userPlaylistID" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
+    <label class="btn btn-outline-primary" for="{{playlist.playlistID}}">Select</label>
+  </td>
+  </tr>
+    </tbody>
+  {% endfor %}
+  </table>
+  <table class="table" style="display:none" id="userPlaylists2">
+    <thead>
+      <tr>
+      <th style="width:20%">Playlist Art</th>
+      <th class="text-center">Playlist Name</th>
+      <th class="text-center"></th>
+    </thead>
+    </tr>
+    <tbody>
+  {% for playlist in userPlaylists2 %}
+  <tr>
+    <td style="text-align: center; vertical-align: center;"><img src={{playlist.image}} style="width:50px"></td>
+    <td style="text-align: center">
+      {{playlist.name}}
+    </td>
+    <td>
+      <input type="radio" class="btn-check" name="userPlaylistID" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
+      <label class="btn btn-outline-primary" for="{{playlist.playlistID}}">Select</label>
+    </td>
+  </tr>
+    </tbody>
+  {% endfor %}
+  </table>
+  <table class="table" style="display:none" id="userPlaylists3">
+    <thead>
+      <tr>
+      <th style="width:20%">Playlist Art</th>
+      <th class="text-center">Playlist Name</th>
+      <th class="text-center"></th>
+    </thead>
+    </tr>
+    <tbody>
+  {% for playlist in userPlaylists3 %}
+  <tr>
+    <td style="text-align: center; vertical-align: center;"><img src={{playlist.image}} style="width:50px"></td>
+    <td style="text-align: center">
+      {{playlist.name}}
+    </td>
+    <td>
+      <input type="radio" class="btn-check" name="userPlaylistID" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
+      <label class="btn btn-outline-primary" for="{{playlist.playlistID}}">Select</label>
+    </td>
+  </tr>
+    </tbody>
+  {% endfor %}
+  </table>
+  
+  </div>
+  
+  {% endif %}
+  
+  {% if searchResultList %}
   <table class="table">
     <thead>
       <tr>
@@ -65,7 +138,7 @@
               name="{{searchResultItem.name}}"
               value="{{searchResultItem.id}}"
             >
-              Add Artist
+              Add All Music
             </button>
           </div>
         </td>
@@ -75,5 +148,33 @@
     </tbody>
   </table>
   {% endif %}
-</form>
+  </form>
+
+
+  <script>
+    function testFunction() {
+      var x = document.getElementById("addToPlaylistSelect").value;
+      var y = document.getElementById("newPlaylistNameDiv");
+      var z = document.getElementById("existingPlaylistDiv");
+      var a = document.getElementById("userPlaylists1");
+      var b = document.getElementById("userPlaylists2");
+      var c = document.getElementById("userPlaylists3");
+      if (x == "newPlaylist") {
+        y.style.display = "block";
+        z.style.display = "none";
+        a.style.display = "none";
+        b.style.display = "none";
+        c.style.display = "none";
+      };
+      
+      if (x == "existingPlaylist") {
+        y.style.display = "none";
+        z.style.display = "block";
+        a.style.display = "table";
+        b.style.display = "table";
+        c.style.display = "table";
+      };
+      
+    }
+    </script>
 {% endblock %}

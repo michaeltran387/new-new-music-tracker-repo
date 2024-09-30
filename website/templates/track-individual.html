@@ -16,7 +16,7 @@
   </div>
 </form>
 
-<form action="/trackIndividual" method="POST">
+<form action="/track-individual" method="POST">
   {% if userTags %} {% for tag in userTags %}
   <input
     type="checkbox"
@@ -59,16 +59,6 @@
           >
             <h5 class="m-3">{{searchResultItem.name}}</h5>
             <a href="{{searchResultItem.link}}" class="mx-3">Spotify Link</a>
-            <!-- <input
-              type="hidden"
-              name="artistID"
-              value="{{searchResultItem.id}}"
-            />
-            <input
-              type="hidden"
-              name="artistName"
-              value="{{searchResultItem.name}}"
-            /> -->
             <button
               type="submit"
               class="btn btn-outline-primary m-3"

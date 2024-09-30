@@ -177,8 +177,7 @@ def newmusic():
                 r = requests.get(endpoint, params=params, headers=headers)
 
                 while True:
-                    print(r.json())
-                    print(r.json()["items"])
+
                     for i in range(len(r.json()["items"])):
                         newMusicList.append(
                             NewMusic(
@@ -561,6 +560,12 @@ def trackIndividual():
             searchResultList = []
 
             for i in range(5):
+                if len(r.json()["artists"]["items"]) < 5:
+                    flash(
+                        "Less than 5 items were found. Please check your search and try again.",
+                        category="error",
+                    )
+                    return redirect("add-all")
                 searchResultList.append(
                     SearchResultTrack(
                         r.json()["artists"]["items"][i]["name"],
@@ -606,7 +611,7 @@ def trackIndividual():
             print(tagList)
             print(requestDict)
 
-            addedArtistID = list(requestDict.keys())[0]
+            addedArtistID = list(requestDict.values())[0]
 
             for tag in tagList:
                 check = (
@@ -803,11 +808,256 @@ def trackFromPlaylistCallback():
 @track_blueprint.route("/add-all", methods=["GET", "POST"])
 @login_required
 def addAll():
-    # if not headers:
-    #     # print("headers is empty.")
-    #     flash("Please sign in to spotify to continue.", category="error")
-    #     return redirect("/")
-    return render_template("add-all.html")
+    if not headers:
+        # print("headers is empty.")
+        flash("Please sign in to spotify to continue.", category="error")
+        return redirect("/")
+
+    if request.method == "GET":
+        return render_template("add-all.html")
+
+    if request.method == "POST":
+        if "searchArtist" in request.form:
+
+            searchArtist = request.form.get("searchArtist")
+            type = ["artist"]
+
+            payload = {"q": searchArtist, "type": type}
+
+            r = requests.get(
+                "https://api.spotify.com/v1/search", params=payload, headers=headers
+            )
+
+            global searchResultList
+            searchResultList = []
+
+            # print(r.json())
+
+            for i in range(5):
+                if len(r.json()["artists"]["items"]) < 5:
+                    flash(
+                        "Less than 5 items were found. Please check your search and try again.",
+                        category="error",
+                    )
+                    return redirect("add-all")
+                searchResultList.append(
+                    SearchResultTrack(
+                        r.json()["artists"]["items"][i]["name"],
+                        r.json()["artists"]["items"][i]["images"][0]["url"],
+                        r.json()["artists"]["items"][i]["external_urls"]["spotify"],
+                        r.json()["artists"]["items"][i]["id"],
+                    )
+                )
+
+            # global userTags
+            # userTags = (
+            #     db.session.execute(
+            #         db.select(UserTags.tag).where(UserTags.user_id == current_user.id)
+            #     )
+            #     .scalars()
+            #     .all()
+            # )
+
+            params = {"limit": "50"}
+
+            r = requests.get(
+                "https://api.spotify.com/v1/me/playlists",
+                headers=headers,
+                params=params,
+            )
+
+            userPlaylists = []
+
+            class UserPlaylists2:
+                def __init__(self, name, playlistID, image):
+                    self.name = name
+                    self.playlistID = playlistID
+                    self.image = image
+
+            for playlist in range(len(r.json()["items"])):
+                if not r.json()["items"][playlist]["images"]:
+                    playlistObject = UserPlaylists2(
+                        r.json()["items"][playlist]["name"],
+                        r.json()["items"][playlist]["id"],
+                        "",
+                    )
+                else:
+                    playlistObject = UserPlaylists2(
+                        r.json()["items"][playlist]["name"],
+                        r.json()["items"][playlist]["id"],
+                        r.json()["items"][playlist]["images"][0]["url"],
+                    )
+                userPlaylists.append(playlistObject)
+
+            userPlaylists1 = []
+            userPlaylists2 = []
+            userPlaylists3 = []
+
+            for playlistObjectIndex in range(len(userPlaylists)):
+                if playlistObjectIndex % 3 == 1:
+                    userPlaylists1.append(userPlaylists[playlistObjectIndex])
+                if playlistObjectIndex % 3 == 2:
+                    userPlaylists2.append(userPlaylists[playlistObjectIndex])
+                if playlistObjectIndex % 3 == 0:
+                    userPlaylists3.append(userPlaylists[playlistObjectIndex])
+
+            for x in userPlaylists1:
+                print(x.name)
+
+            return render_template(
+                "add-all.html",
+                searchResultList=searchResultList,
+                userPlaylists1=userPlaylists1,
+                userPlaylists2=userPlaylists2,
+                userPlaylists3=userPlaylists3,
+            )
+        else:
+
+            print(request.form)
+
+            if request.form["addToPlaylistSelect"] == "newPlaylist":
+                if not request.form["newPlaylistName"]:
+                    flash("Please enter a new playlist name.", category="error")
+                    return redirect("/add-all")
+                else:
+                    r = requests.get("https://api.spotify.com/v1/me", headers=headers)
+                    spotifyUserID = r.json()["id"]
+
+                    createPlaylistEndpoint = (
+                        "https://api.spotify.com/v1/users/"
+                        + spotifyUserID
+                        + "/playlists"
+                    )
+                    # print(request.form)
+                    newPlaylistName = request.form["newPlaylistName"]
+                    data = {"name": newPlaylistName}
+
+                    r = requests.post(
+                        createPlaylistEndpoint, headers=headers, json=data
+                    )
+                    newPlaylistID = r.json()["id"]
+
+                    requestDict = request.form.to_dict()
+                    del requestDict["addToPlaylistSelect"]
+                    del requestDict["newPlaylistName"]
+
+                    limit = 50
+
+                    params = {
+                        "include_groups": "album,single",
+                        "limit": limit,
+                    }
+
+                    artistAlbumIDsAndDates = []
+
+                    endpoint = (
+                        "https://api.spotify.com/v1/artists/"
+                        + list(requestDict.values())[0]
+                        + "/albums"
+                    )
+
+                    r = requests.get(endpoint, params=params, headers=headers)
+
+                    while True:
+
+                        for i in range(len(r.json()["items"])):
+                            artistAlbumIDsAndDates.append(
+                                (
+                                    r.json()["items"][i]["id"],
+                                    r.json()["items"][i]["release_date"],
+                                )
+                            )
+
+                        if (r.json()["next"]) == None:
+                            break
+                        r = requests.get(r.json()["next"], headers=headers)
+
+                    artistAlbumIDsAndDates.sort(reverse=True, key=lambda x: x[1])
+
+                    URIArray = []
+
+                    params = {"limit": 50}
+
+                    for albumIDAndDate in artistAlbumIDsAndDates:
+                        getAlbumTracksEndpoint = (
+                            "https://api.spotify.com/v1/albums/{}/tracks".format(
+                                albumIDAndDate[0]
+                            )
+                        )
+                        r = requests.get(
+                            getAlbumTracksEndpoint, headers=headers, params=params
+                        )
+                        for i in range(len(r.json()["items"])):
+                            URIArray.append(r.json()["items"][i]["uri"])
+
+                    print(URIArray)
+                    print(len(URIArray))
+
+                    addItemsToPlaylistEndpoint = (
+                        "https://api.spotify.com/v1/playlists/{}/tracks".format(
+                            newPlaylistID
+                        )
+                    )
+
+                    data = {"uris": URIArray}
+
+                    r = requests.post(
+                        addItemsToPlaylistEndpoint, headers=headers, json=data
+                    )
+
+                    print(r.json())
+
+                    flash(
+                        "Artist's music has been succesfully added to a new playlist.",
+                        category="success",
+                    )
+                    return redirect("/add-all")
+
+            if request.form["addToPlaylistSelect"] == "existingPlaylist":
+
+                userPlaylistID = request.form["userPlaylistID"]
+
+                albumIDDict = request.form.to_dict()
+                del albumIDDict["addToPlaylistSelect"]
+                del albumIDDict["newPlaylistName"]
+                del albumIDDict["userPlaylistID"]
+
+                URIArray = []
+
+                params = {"limit": 50}
+
+                for albumID in albumIDDict.keys():
+                    getAlbumTracksEndpoint = (
+                        "https://api.spotify.com/v1/albums/{}/tracks".format(albumID)
+                    )
+                    r = requests.get(
+                        getAlbumTracksEndpoint, headers=headers, params=params
+                    )
+                    for i in range(len(r.json()["items"])):
+                        URIArray.append(r.json()["items"][i]["uri"])
+
+                addItemsToPlaylistEndpoint = (
+                    "https://api.spotify.com/v1/playlists/" + userPlaylistID + "/tracks"
+                )
+
+                data = {"uris": URIArray}
+
+                r = requests.post(
+                    addItemsToPlaylistEndpoint, headers=headers, json=data
+                )
+
+                flash(
+                    "Selected albums have been succesfully added to the selected playlist.",
+                    category="success",
+                )
+                return redirect("/newmusic")
+
+            return render_template("add-all.html")
+
+            # return render_template(
+            #     "add-all.html",
+            #     searchResultList=searchResultList,
+            # )
 
 
 # @track_blueprint.route("/test", methods=["GET"])
