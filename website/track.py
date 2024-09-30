@@ -177,7 +177,8 @@ def newmusic():
                 r = requests.get(endpoint, params=params, headers=headers)
 
                 while True:
-
+                    print(r.json())
+                    print(r.json()["items"])
                     for i in range(len(r.json()["items"])):
                         newMusicList.append(
                             NewMusic(
@@ -269,7 +270,7 @@ def newmusic():
                 "Please make sure to assign at least one tag to the added artists.",
                 category="error",
             )
-            return redirect("track-artists")
+            return redirect("track-from-playlist")
 
         if "userTag" in request.form.values():
 
@@ -289,7 +290,7 @@ def newmusic():
                 "Please make sure to select at least one artist.",
                 category="error",
             )
-            return redirect("track-artists")
+            return redirect("track-from-playlist")
 
         if tagList:
             for artistKey in list(requestDict.keys()):
@@ -387,160 +388,6 @@ def newmusic():
                 category="success",
             )
             return redirect("/newmusic")
-
-
-@track_blueprint.route("track-artists", methods=["GET", "POST"])
-@login_required
-def trackArtists():
-
-    if not headers:
-        # print("headers is empty.")
-        flash("Please sign in to spotify to continue.", category="error")
-        return redirect("/")
-
-    if request.method == "GET":
-        r = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
-
-        userPlaylists = []
-
-        class UserPlaylists:
-            def __init__(self, name, playlistID, image, tracks):
-                self.name = name
-                self.playlistID = playlistID
-                self.image = image
-                self.tracks = tracks
-
-        while True:
-            for item in range(r.json()["total"]):
-                if not r.json()["items"][item]["images"]:
-                    userPlaylists.append(
-                        UserPlaylists(
-                            r.json()["items"][item]["name"],
-                            r.json()["items"][item]["id"],
-                            "",
-                            r.json()["items"][item]["tracks"]["href"],
-                        )
-                    )
-                else:
-                    userPlaylists.append(
-                        UserPlaylists(
-                            r.json()["items"][item]["name"],
-                            r.json()["items"][item]["id"],
-                            r.json()["items"][item]["images"][0]["url"],
-                            r.json()["items"][item]["tracks"]["href"],
-                        )
-                    )
-
-            if r.json()["next"] == None:
-                break
-            else:
-                r = requests.get(r.json()["next"], headers=headers)
-
-        userPlaylistsOdd = []
-        userPlaylistsEven = []
-
-        for playlist in range(len(userPlaylists)):
-            if playlist % 2 == 1:
-                userPlaylistsOdd.append(userPlaylists[playlist])
-            else:
-                userPlaylistsEven.append(userPlaylists[playlist])
-
-        return render_template(
-            "track-artists.html",
-            userPlaylistsOdd=userPlaylistsOdd,
-            userPlaylistsEven=userPlaylistsEven,
-        )
-
-
-@track_blueprint.route("/track-artists-callback", methods=["POST"])
-@login_required
-def trackArtistsCallback():
-    if not headers:
-        # print("headers is empty.")
-        flash("Please sign in to spotify to continue.", category="error")
-        return redirect("/")
-
-    if request.method == "POST":
-
-        playlistID = list(request.form.keys())[0]
-
-        url = list(request.form.keys())[1]
-        params = {"fields": "limit,total,next,previous,items(track(artists(id,name)))"}
-
-        r = requests.get(url, headers=headers, params=params)
-
-        artistList = []
-        artistIDList = []
-
-        counter = 0
-
-        class Artist:
-            def __init__(self, id, name, image):
-                self.id = id
-                self.name = name
-                self.image = image
-
-        while (r.json()["next"] != None) or (r.json()["previous"] == None):
-            counter += 1
-
-            for item in range(len(r.json()["items"])):
-                for artist in range(len(r.json()["items"][item]["track"]["artists"])):
-
-                    if (
-                        r.json()["items"][item]["track"]["artists"][artist]["id"]
-                        not in artistIDList
-                    ):
-                        r2 = requests.get(
-                            "https://api.spotify.com/v1/artists/{}".format(
-                                r.json()["items"][item]["track"]["artists"][artist][
-                                    "id"
-                                ]
-                            ),
-                            headers=headers,
-                        )
-                        artistIDList.append(
-                            r.json()["items"][item]["track"]["artists"][artist]["id"]
-                        )
-                        if r2.json()["images"]:
-                            artistList.append(
-                                Artist(
-                                    r.json()["items"][item]["track"]["artists"][artist][
-                                        "id"
-                                    ],
-                                    r.json()["items"][item]["track"]["artists"][artist][
-                                        "name"
-                                    ],
-                                    r2.json()["images"][0]["url"],
-                                )
-                            )
-                        else:
-                            artistList.append(
-                                Artist(
-                                    r.json()["items"][item]["track"]["artists"][artist][
-                                        "id"
-                                    ],
-                                    r.json()["items"][item]["track"]["artists"][artist][
-                                        "name"
-                                    ],
-                                    "",
-                                )
-                            )
-            if r.json()["next"] == None:
-                break
-            else:
-                r = requests.get(r.json()["next"], headers=headers, params=params)
-
-        userTags = (
-            db.session.execute(
-                db.select(UserTags.tag).where(UserTags.user_id == current_user.id)
-            )
-            .scalars()
-            .all()
-        )
-
-        return render_template(
-            "track-artists-callback.html", artistList=artistList, userTags=userTags
-        )
 
 
 @track_blueprint.route("/tag-list", methods=["GET", "POST"])
@@ -686,9 +533,9 @@ def tagList():
     )
 
 
-@track_blueprint.route("/track", methods=["GET", "POST"])
+@track_blueprint.route("/track-individual", methods=["GET", "POST"])
 @login_required
-def track():
+def trackIndividual():
 
     if not headers:
         # print("headers is empty.")
@@ -697,7 +544,7 @@ def track():
 
     if request.method == "GET":
 
-        return render_template("track.html")
+        return render_template("track-individual.html")
     if request.method == "POST":
         if "searchArtist" in request.form:
 
@@ -733,7 +580,9 @@ def track():
             )
 
             return render_template(
-                "track.html", searchResultList=searchResultList, userTags=userTags
+                "track-individual.html",
+                searchResultList=searchResultList,
+                userTags=userTags,
             )
         else:
 
@@ -789,8 +638,176 @@ def track():
                         category="success",
                     )
             return render_template(
-                "track.html", searchResultList=searchResultList, userTags=userTags
+                "track-individual.html",
+                searchResultList=searchResultList,
+                userTags=userTags,
             )
+
+
+@track_blueprint.route("track-from-playlist", methods=["GET", "POST"])
+@login_required
+def trackFromPlaylist():
+
+    if not headers:
+        # print("headers is empty.")
+        flash("Please sign in to spotify to continue.", category="error")
+        return redirect("/")
+
+    if request.method == "GET":
+        r = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
+
+        userPlaylists = []
+
+        class UserPlaylists:
+            def __init__(self, name, playlistID, image, tracks):
+                self.name = name
+                self.playlistID = playlistID
+                self.image = image
+                self.tracks = tracks
+
+        while True:
+            for item in range(r.json()["total"]):
+                if not r.json()["items"][item]["images"]:
+                    userPlaylists.append(
+                        UserPlaylists(
+                            r.json()["items"][item]["name"],
+                            r.json()["items"][item]["id"],
+                            "",
+                            r.json()["items"][item]["tracks"]["href"],
+                        )
+                    )
+                else:
+                    userPlaylists.append(
+                        UserPlaylists(
+                            r.json()["items"][item]["name"],
+                            r.json()["items"][item]["id"],
+                            r.json()["items"][item]["images"][0]["url"],
+                            r.json()["items"][item]["tracks"]["href"],
+                        )
+                    )
+
+            if r.json()["next"] == None:
+                break
+            else:
+                r = requests.get(r.json()["next"], headers=headers)
+
+        userPlaylistsOdd = []
+        userPlaylistsEven = []
+
+        for playlist in range(len(userPlaylists)):
+            if playlist % 2 == 1:
+                userPlaylistsOdd.append(userPlaylists[playlist])
+            else:
+                userPlaylistsEven.append(userPlaylists[playlist])
+
+        return render_template(
+            "track-from-playlist.html",
+            userPlaylistsOdd=userPlaylistsOdd,
+            userPlaylistsEven=userPlaylistsEven,
+        )
+
+
+@track_blueprint.route("/track-from-playlist-callback", methods=["POST"])
+@login_required
+def trackFromPlaylistCallback():
+    if not headers:
+        # print("headers is empty.")
+        flash("Please sign in to spotify to continue.", category="error")
+        return redirect("/")
+
+    if request.method == "POST":
+
+        playlistID = list(request.form.keys())[0]
+
+        url = list(request.form.keys())[1]
+        params = {"fields": "limit,total,next,previous,items(track(artists(id,name)))"}
+
+        r = requests.get(url, headers=headers, params=params)
+
+        artistList = []
+        artistIDList = []
+
+        counter = 0
+
+        class Artist:
+            def __init__(self, id, name, image):
+                self.id = id
+                self.name = name
+                self.image = image
+
+        while (r.json()["next"] != None) or (r.json()["previous"] == None):
+            counter += 1
+
+            for item in range(len(r.json()["items"])):
+                for artist in range(len(r.json()["items"][item]["track"]["artists"])):
+
+                    if (
+                        r.json()["items"][item]["track"]["artists"][artist]["id"]
+                        not in artistIDList
+                    ):
+                        r2 = requests.get(
+                            "https://api.spotify.com/v1/artists/{}".format(
+                                r.json()["items"][item]["track"]["artists"][artist][
+                                    "id"
+                                ]
+                            ),
+                            headers=headers,
+                        )
+                        artistIDList.append(
+                            r.json()["items"][item]["track"]["artists"][artist]["id"]
+                        )
+                        if r2.json()["images"]:
+                            artistList.append(
+                                Artist(
+                                    r.json()["items"][item]["track"]["artists"][artist][
+                                        "id"
+                                    ],
+                                    r.json()["items"][item]["track"]["artists"][artist][
+                                        "name"
+                                    ],
+                                    r2.json()["images"][0]["url"],
+                                )
+                            )
+                        else:
+                            artistList.append(
+                                Artist(
+                                    r.json()["items"][item]["track"]["artists"][artist][
+                                        "id"
+                                    ],
+                                    r.json()["items"][item]["track"]["artists"][artist][
+                                        "name"
+                                    ],
+                                    "",
+                                )
+                            )
+            if r.json()["next"] == None:
+                break
+            else:
+                r = requests.get(r.json()["next"], headers=headers, params=params)
+
+        userTags = (
+            db.session.execute(
+                db.select(UserTags.tag).where(UserTags.user_id == current_user.id)
+            )
+            .scalars()
+            .all()
+        )
+
+        return render_template(
+            "track-from-playlist-callback.html",
+            artistList=artistList,
+            userTags=userTags,
+        )
+
+
+@track_blueprint.route("/add-all", methods=["GET", "POST"])
+@login_required
+def addAll():
+    # if not headers:
+    #     # print("headers is empty.")
+    #     flash("Please sign in to spotify to continue.", category="error")
+    #     return redirect("/")
+    return render_template("add-all.html")
 
 
 # @track_blueprint.route("/test", methods=["GET"])

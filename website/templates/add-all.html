@@ -1,0 +1,79 @@
+{% extends "base.html" %} {% block title %}
+<title>Track Artist Individually</title>
+{% endblock %} {% block content %}
+<form action="#" method="POST" class="m-3">
+  <div class="input-group">
+    <input
+      class="form-control mr-sm-2"
+      type="search"
+      placeholder="Artist Name"
+      aria-label="Search"
+      name="searchArtist"
+    />
+    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">
+      Search
+    </button>
+  </div>
+</form>
+
+<form action="/trackIndividual" method="POST">
+  {% if userTags %} {% for tag in userTags %}
+  <input
+    type="checkbox"
+    class="btn-check"
+    id="{{tag}}"
+    value="selectedTag"
+    name="{{tag}}"
+  />
+  <label class="btn btn-outline-primary my-2 mx-1" for="{{tag}}">{{tag}}</label>
+  {% endfor %} {% endif %} {% if userTags %}
+  <div>
+    <h7 class="m-2"
+      >Please assign a tag or multiple tags to associate with the selected
+      artist.</h7
+    >
+  </div>
+  {% endif %} {% if searchResultList %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th style="width: 200px">Artist Art</th>
+        <th style="text-align: center">Artist Information</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for searchResultItem in searchResultList %}
+
+      <tr>
+        <td>
+          <img
+            src="{{searchResultItem.picture}}"
+            class="list-group-item"
+            style="height: 150px; width: 150px"
+          />
+        </td>
+        <td>
+          <div
+            class="d-flex flex-column align-items-center"
+            style="text-align: center"
+          >
+            <h5 class="m-3">{{searchResultItem.name}}</h5>
+            <a href="{{searchResultItem.link}}" class="mx-3">Spotify Link</a>
+            <button
+              type="submit"
+              class="btn btn-outline-primary m-3"
+              name="{{searchResultItem.name}}"
+              value="{{searchResultItem.id}}"
+            >
+              Add Artist
+            </button>
+          </div>
+        </td>
+      </tr>
+
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</form>
+{% endblock %}
