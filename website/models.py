@@ -21,7 +21,6 @@ class User(db.Model):
     displayname: Mapped[str] = mapped_column()
     password: Mapped[str] = mapped_column()
     is_authenticated: Mapped[bool] = mapped_column(default=False)
-    # is_authenticated = False
     is_active: Mapped[bool] = mapped_column(default=True)
     is_anonymous: Mapped[bool] = mapped_column(default=False)
 
@@ -45,6 +44,8 @@ class UserTags(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     tag: Mapped[str] = mapped_column(nullable=False)
+    auto_update: Mapped[bool] = mapped_column(default=False)
+    auto_update_playlist_id: Mapped[str] = mapped_column(default="")
 
 
 # class FlaggedMusic(db.Model):

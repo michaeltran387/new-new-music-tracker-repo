@@ -1,0 +1,135 @@
+{% extends "base.html" %} {% block title %}
+<title>Automatically Track New Music</title>
+<h1 class="m-3" style="text-align: center;">Automatically Track New Music</h1>
+{% endblock %} {% block content %} 
+<form class="m-3" action="/auto-track" method="POST">
+<div class="d-flex">
+{% for tag in userTags %}
+<input type="checkbox" class="btn-check" id="{{tag}}" name="{{tag}}" value="tagFilter">
+<label class="btn btn-outline-primary m-1" for="{{tag}}">{{tag}}</label>
+{% endfor %}
+<button type="submit" class="btn btn-primary ms-auto">Filter</button>
+</div>
+<div class="form-text">Please select tags to track.</div>
+</form> 
+
+<form action="/newmusic" method="POST">
+{% if userPlaylists1 %}
+<div class="m-3">
+<select id="addToPlaylistSelect" class="form-select" name="addToPlaylistSelect" onchange="testFunction()">
+<option value="newPlaylist">Add to New Playlist</option>
+<option value="existingPlaylist">Add to Existing Playlist</option>
+</select>
+</div>
+
+<div class="form-floating m-3" id="newPlaylistNameDiv">
+<input type="text" class="form-control" id="newPlaylistName" name="newPlaylistName">
+<label for="newPlaylistName">New Playlist Name </label>
+</div>
+
+<div class="d-flex flex-row m-3" id="existingPlaylistDiv" style="display: none">
+<form>
+<table class="table" style="display:none" id="userPlaylists1">
+<thead>
+    <tr>
+    <th class="text-center" style="width:20%">Playlist Art</th>
+    <th class="text-center">Playlist Name</th>
+    <th class="text-center"></th>
+</thead>
+</tr>
+<tbody>
+{% for playlist in userPlaylists1 %}
+<tr>
+<td style="text-align: center; vertical-align: center;"><img src={{playlist.image}} style="width:50px"></td>
+<td style="text-align: center">
+{{playlist.name}}
+</td>
+<td>
+<input type="radio" class="btn-check" name="userPlaylistID" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
+<label class="btn btn-outline-primary" for="{{playlist.playlistID}}">Select</label>
+</td>
+</tr>
+</tbody>
+{% endfor %}
+</table>
+<table class="table" style="display:none" id="userPlaylists2">
+<thead>
+    <tr>
+    <th style="width:20%">Playlist Art</th>
+    <th class="text-center">Playlist Name</th>
+    <th class="text-center"></th>
+</thead>
+</tr>
+<tbody>
+{% for playlist in userPlaylists2 %}
+<tr>
+<td style="text-align: center; vertical-align: center;"><img src={{playlist.image}} style="width:50px"></td>
+<td style="text-align: center">
+    {{playlist.name}}
+</td>
+<td>
+    <input type="radio" class="btn-check" name="userPlaylistID" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
+    <label class="btn btn-outline-primary" for="{{playlist.playlistID}}">Select</label>
+</td>
+</tr>
+</tbody>
+{% endfor %}
+</table>
+<table class="table" style="display:none" id="userPlaylists3">
+<thead>
+    <tr>
+    <th style="width:20%">Playlist Art</th>
+    <th class="text-center">Playlist Name</th>
+    <th class="text-center"></th>
+</thead>
+</tr>
+<tbody>
+{% for playlist in userPlaylists3 %}
+<tr>
+<td style="text-align: center; vertical-align: center;"><img src={{playlist.image}} style="width:50px"></td>
+<td style="text-align: center">
+    {{playlist.name}}
+</td>
+<td>
+    <input type="radio" class="btn-check" name="userPlaylistID" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
+    <label class="btn btn-outline-primary" for="{{playlist.playlistID}}">Select</label>
+</td>
+</tr>
+</tbody>
+{% endfor %}
+</table>
+
+<button type="submit" style="position:absolute;bottom:3px;right:3px" class="btn btn-lg btn-primary m-2">Submit</button>
+{% endif %} 
+
+
+
+<script>
+
+function testFunction() {
+    var x = document.getElementById("addToPlaylistSelect").value;
+    var y = document.getElementById("newPlaylistNameDiv");
+    var z = document.getElementById("existingPlaylistDiv");
+    var a = document.getElementById("userPlaylists1");
+    var b = document.getElementById("userPlaylists2");
+    var c = document.getElementById("userPlaylists3");
+    if (x == "newPlaylist") {
+    y.style.display = "block";
+    z.style.display = "none";
+    a.style.display = "none";
+    b.style.display = "none";
+    c.style.display = "none";
+    };
+    
+    if (x == "existingPlaylist") {
+    y.style.display = "none";
+    z.style.display = "block";
+    a.style.display = "table";
+    b.style.display = "table";
+    c.style.display = "table";
+    };
+    
+}
+</script>
+
+{% endblock %}
