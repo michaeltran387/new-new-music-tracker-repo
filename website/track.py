@@ -816,67 +816,256 @@ def autoTrack():
 
     print(request.form)
 
-    userTags = (
-        db.session.execute(
-            db.select(UserTags.tag).where(UserTags.user_id == current_user.id)
+    if request.method == "GET":
+
+        userTags = (
+            db.session.execute(
+                db.select(UserTags.tag).where(UserTags.user_id == current_user.id)
+            )
+            .scalars()
+            .all()
         )
-        .scalars()
-        .all()
-    )
 
-    params = {"limit": "50"}
+        params = {"limit": "50"}
 
-    r = requests.get(
-        "https://api.spotify.com/v1/me/playlists",
-        headers=headers,
-        params=params,
-    )
+        r = requests.get(
+            "https://api.spotify.com/v1/me/playlists",
+            headers=headers,
+            params=params,
+        )
 
-    userPlaylists = []
+        userPlaylists = []
 
-    class UserPlaylists2:
-        def __init__(self, name, playlistID, image):
-            self.name = name
-            self.playlistID = playlistID
-            self.image = image
+        class UserPlaylists2:
+            def __init__(self, name, playlistID, image):
+                self.name = name
+                self.playlistID = playlistID
+                self.image = image
 
-    for playlist in range(len(r.json()["items"])):
-        if not r.json()["items"][playlist]["images"]:
-            playlistObject = UserPlaylists2(
-                r.json()["items"][playlist]["name"],
-                r.json()["items"][playlist]["id"],
-                "",
+        for playlist in range(len(r.json()["items"])):
+            if not r.json()["items"][playlist]["images"]:
+                playlistObject = UserPlaylists2(
+                    r.json()["items"][playlist]["name"],
+                    r.json()["items"][playlist]["id"],
+                    "",
+                )
+            else:
+                playlistObject = UserPlaylists2(
+                    r.json()["items"][playlist]["name"],
+                    r.json()["items"][playlist]["id"],
+                    r.json()["items"][playlist]["images"][0]["url"],
+                )
+            userPlaylists.append(playlistObject)
+
+        userPlaylists1 = []
+        userPlaylists2 = []
+        userPlaylists3 = []
+
+        for playlistObjectIndex in range(len(userPlaylists)):
+            if playlistObjectIndex % 3 == 1:
+                userPlaylists1.append(userPlaylists[playlistObjectIndex])
+            if playlistObjectIndex % 3 == 2:
+                userPlaylists2.append(userPlaylists[playlistObjectIndex])
+            if playlistObjectIndex % 3 == 0:
+                userPlaylists3.append(userPlaylists[playlistObjectIndex])
+
+        return render_template(
+            "auto-track.html",
+            userTags=userTags,
+            userPlaylists1=userPlaylists1,
+            userPlaylists2=userPlaylists2,
+            userPlaylists3=userPlaylists3,
+        )
+    if request.method == "POST":
+
+        userTags = (
+            db.session.execute(
+                db.select(UserTags.tag).where(UserTags.user_id == current_user.id)
             )
-        else:
-            playlistObject = UserPlaylists2(
-                r.json()["items"][playlist]["name"],
-                r.json()["items"][playlist]["id"],
-                r.json()["items"][playlist]["images"][0]["url"],
+            .scalars()
+            .all()
+        )
+
+        params = {"limit": "50"}
+
+        r = requests.get(
+            "https://api.spotify.com/v1/me/playlists",
+            headers=headers,
+            params=params,
+        )
+
+        userPlaylists = []
+
+        class UserPlaylists2:
+            def __init__(self, name, playlistID, image):
+                self.name = name
+                self.playlistID = playlistID
+                self.image = image
+
+        for playlist in range(len(r.json()["items"])):
+            if not r.json()["items"][playlist]["images"]:
+                playlistObject = UserPlaylists2(
+                    r.json()["items"][playlist]["name"],
+                    r.json()["items"][playlist]["id"],
+                    "",
+                )
+            else:
+                playlistObject = UserPlaylists2(
+                    r.json()["items"][playlist]["name"],
+                    r.json()["items"][playlist]["id"],
+                    r.json()["items"][playlist]["images"][0]["url"],
+                )
+            userPlaylists.append(playlistObject)
+
+        userPlaylists1 = []
+        userPlaylists2 = []
+        userPlaylists3 = []
+
+        for playlistObjectIndex in range(len(userPlaylists)):
+            if playlistObjectIndex % 3 == 1:
+                userPlaylists1.append(userPlaylists[playlistObjectIndex])
+            if playlistObjectIndex % 3 == 2:
+                userPlaylists2.append(userPlaylists[playlistObjectIndex])
+            if playlistObjectIndex % 3 == 0:
+                userPlaylists3.append(userPlaylists[playlistObjectIndex])
+
+        if "tagFilter" not in request.form.values():
+            flash("Please select at least one tag.", category="error")
+            return render_template(
+                "auto-track.html",
+                userTags=userTags,
+                userPlaylists1=userPlaylists1,
+                userPlaylists2=userPlaylists2,
+                userPlaylists3=userPlaylists3,
             )
-        userPlaylists.append(playlistObject)
 
-    userPlaylists1 = []
-    userPlaylists2 = []
-    userPlaylists3 = []
+        if (
+            request.form["addToPlaylistSelect"] == "newPlaylist"
+            and not request.form["newPlaylistName"]
+        ):
+            flash("Please enter a name for the new playlist.", category="error")
+            return render_template(
+                "auto-track.html",
+                userTags=userTags,
+                userPlaylists1=userPlaylists1,
+                userPlaylists2=userPlaylists2,
+                userPlaylists3=userPlaylists3,
+            )
 
-    for playlistObjectIndex in range(len(userPlaylists)):
-        if playlistObjectIndex % 3 == 1:
-            userPlaylists1.append(userPlaylists[playlistObjectIndex])
-        if playlistObjectIndex % 3 == 2:
-            userPlaylists2.append(userPlaylists[playlistObjectIndex])
-        if playlistObjectIndex % 3 == 0:
-            userPlaylists3.append(userPlaylists[playlistObjectIndex])
+        requestDict = request.form.to_dict()
 
-    # for x in userPlaylists1:
-    #     print(x.name)
+        tagList = []
 
-    return render_template(
-        "auto-track.html",
-        userTags=userTags,
-        userPlaylists1=userPlaylists1,
-        userPlaylists2=userPlaylists2,
-        userPlaylists3=userPlaylists3,
-    )
+        for item in requestDict.items():
+            if item[1] == "tagFilter":
+                tagList.append(item[0])
+
+        if request.form["addToPlaylistSelect"] == "newPlaylist":
+            r = requests.get("https://api.spotify.com/v1/me", headers=headers)
+            spotifyUserID = r.json()["id"]
+
+            createPlaylistEndpoint = (
+                "https://api.spotify.com/v1/users/" + spotifyUserID + "/playlists"
+            )
+
+            newPlaylistName = request.form["newPlaylistName"]
+            data = {"name": newPlaylistName}
+
+            r = requests.post(createPlaylistEndpoint, headers=headers, json=data)
+            newPlaylistID = r.json()["id"]
+
+            response = ""
+            for tag in tagList:
+                userTagsObject = db.session.execute(
+                    db.select(UserTags)
+                    .where(UserTags.user_id == current_user.id)
+                    .where(UserTags.tag == tag)
+                ).scalar_one()
+                userTagsObject.auto_update = True
+                userTagsObject.auto_update_playlist_id = newPlaylistID
+                db.session.commit()
+
+            if len(tagList) == 1:
+                flash(
+                    "Tag {} has been linked to your new playlist.".format(tagList[0]),
+                    category="success",
+                )
+            elif len(tagList) == 2:
+                flash(
+                    "Tags {} has been linked to your new playlist.".format(
+                        "{} and {}".format(tagList[0]), tagList[1]
+                    ),
+                    category="success",
+                )
+            else:
+                x = ""
+                for tag in tagList:
+                    x += tag
+                    if tag == tagList[-2]:
+                        break
+                    x += ", "
+                x += ", and "
+                x += tagList[-1]
+                flash(
+                    "Tags {} have been linked to your new playlist.".format(x),
+                    category="success",
+                )
+
+        if request.form["addToPlaylistSelect"] == "existingPlaylist":
+
+            if len(list(request.form.keys())) == len(tagList) + 2:
+                flash("Please select an existing playlist.", category="error")
+                return redirect("auto-track")
+
+            for tag in tagList:
+                userTagsObject = db.session.execute(
+                    db.select(UserTags)
+                    .where(UserTags.user_id == current_user.id)
+                    .where(UserTags.tag == tag)
+                ).scalar_one()
+                userTagsObject.auto_update = True
+                userTagsObject.auto_update_playlist_id = list(request.form.values())[-1]
+                db.session.commit()
+
+            if len(tagList) == 1:
+                flash(
+                    "Tag {} has been linked to playlist {}.".format(
+                        tagList[0], list(request.form.keys())[-1]
+                    ),
+                    category="success",
+                )
+            elif len(tagList) == 2:
+                flash(
+                    "Tags {} has been linked to playlist {}.".format(
+                        "{} and {}".format(tagList[0]),
+                        tagList[1],
+                        list(request.form.keys())[-1],
+                    ),
+                    category="success",
+                )
+            else:
+                x = ""
+                for tag in tagList:
+                    x += tag
+                    if tag == tagList[-2]:
+                        break
+                    x += ", "
+                x += ", and "
+                x += tagList[-1]
+                flash(
+                    "Tags {} have been linked to playlist {}.".format(
+                        x, list(request.form.keys())[-1]
+                    ),
+                    category="success",
+                )
+
+        return render_template(
+            "auto-track.html",
+            userTags=userTags,
+            userPlaylists1=userPlaylists1,
+            userPlaylists2=userPlaylists2,
+            userPlaylists3=userPlaylists3,
+        )
 
 
 @track_blueprint.route("/add-all", methods=["GET", "POST"])

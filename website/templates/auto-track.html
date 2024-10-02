@@ -10,10 +10,10 @@
 {% endfor %}
 <button type="submit" class="btn btn-primary ms-auto">Filter</button>
 </div>
-<div class="form-text">Please select tags to track.</div>
-</form> 
+<div class="form-text">This will associate tags with playlists which will update with new music automatically. Please select tags and playlists.</div>
+<!-- </form>  -->
 
-<form action="/newmusic" method="POST">
+<!-- <form action="/auto-track" method="POST"> -->
 {% if userPlaylists1 %}
 <div class="m-3">
 <select id="addToPlaylistSelect" class="form-select" name="addToPlaylistSelect" onchange="testFunction()">
@@ -45,7 +45,7 @@
 {{playlist.name}}
 </td>
 <td>
-<input type="radio" class="btn-check" name="userPlaylistID" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
+<input type="radio" class="btn-check" name="{{playlist.name}}" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
 <label class="btn btn-outline-primary" for="{{playlist.playlistID}}">Select</label>
 </td>
 </tr>
@@ -68,7 +68,7 @@
     {{playlist.name}}
 </td>
 <td>
-    <input type="radio" class="btn-check" name="userPlaylistID" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
+    <input type="radio" class="btn-check" name="{{playlist.name}}" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
     <label class="btn btn-outline-primary" for="{{playlist.playlistID}}">Select</label>
 </td>
 </tr>
@@ -91,7 +91,7 @@
     {{playlist.name}}
 </td>
 <td>
-    <input type="radio" class="btn-check" name="userPlaylistID" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
+    <input type="radio" class="btn-check" name="{{playlist.name}}" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
     <label class="btn btn-outline-primary" for="{{playlist.playlistID}}">Select</label>
 </td>
 </tr>
