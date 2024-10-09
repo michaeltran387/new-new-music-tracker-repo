@@ -1387,6 +1387,9 @@ def addAll():
                 return redirect("/add-all")
 
 
-# @track_blueprint.route("/test", methods=["GET"])
-# def test():
-#     return render_template("test.html")
+@track_blueprint.route("/shutdown", methods=["GET"])
+def shutdown():
+    func = request.environ.get("werkzeug.server.shutdown")
+    print(func)
+    func()
+    return "Server is shutting down..."
