@@ -101,6 +101,9 @@ def newmusic():
 
     print(request.form)
 
+    print(current_user)
+    print(current_user.id)
+
     if not headers:
         print("headers is empty.")
         flash("Please sign in to spotify to continue.", category="error")
@@ -983,6 +986,7 @@ def autoTrack():
                 ).scalar_one()
                 userTagsObject.auto_update = True
                 userTagsObject.auto_update_playlist_id = newPlaylistID
+                userTagsObject.auto_update_date_last_checked = datetime.datetime.now()
                 db.session.commit()
 
             if len(tagList) == 1:
@@ -1025,6 +1029,7 @@ def autoTrack():
                 ).scalar_one()
                 userTagsObject.auto_update = True
                 userTagsObject.auto_update_playlist_id = list(request.form.values())[-1]
+                userTagsObject.auto_update_date_last_checked = datetime.datetime.now()
                 db.session.commit()
 
             if len(tagList) == 1:

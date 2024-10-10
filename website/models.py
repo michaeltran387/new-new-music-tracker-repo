@@ -2,8 +2,10 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import ForeignKey
 
+
 # from sqlalchemy import Integer, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+import datetime
 
 
 class Base(DeclarativeBase):
@@ -46,6 +48,9 @@ class UserTags(db.Model):
     tag: Mapped[str] = mapped_column(nullable=False)
     auto_update: Mapped[bool] = mapped_column(default=False)
     auto_update_playlist_id: Mapped[str] = mapped_column(default="")
+    auto_update_date_last_checked: Mapped[datetime.datetime] = mapped_column(
+        default=datetime.datetime(1, 1, 1)
+    )
 
 
 # class FlaggedMusic(db.Model):

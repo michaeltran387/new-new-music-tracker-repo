@@ -103,6 +103,10 @@ def signup():
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():
+
+    # print(current_user)
+    # print(current_user.id)
+
     if request.method == "GET":
         return render_template("login.html")
     if request.method == "POST":
