@@ -27,13 +27,25 @@ def addArtist(name, id, tag):
     if id in check.all():
         return None
 
-    addArtist = AddedArtists(user_id=current_user.id, artist_id=id, name=name, tag=tag)
+    tag_id = (
+        db.session.execute(
+            db.select(UserTags.id)
+            .where(UserTags.user_id == current_user.id)
+            .where(UserTags.tag == tag)
+        )
+        .scalars()
+        .all()[0]
+    )
+
+    addArtist = AddedArtists(
+        user_id=current_user.id, tag_id=tag_id, artist_id=id, name=name, tag=tag
+    )
     db.session.add(addArtist)
     db.session.commit()
 
-    check = db.session.execute(
-        db.select(AddedArtists.artist_id).where(AddedArtists.user_id == current_user.id)
-    ).scalars()
+    # check = db.session.execute(
+    #     db.select(AddedArtists.artist_id).where(AddedArtists.user_id == current_user.id)
+    # ).scalars()
 
     return None
 
@@ -92,6 +104,31 @@ def callback():
     global headers
     headers = {"Authorization": "Bearer " + r.json()["access_token"]}
 
+    check = (
+        db.session.execute(
+            db.select(AccessToken).where(AccessToken.user_id == current_user.id)
+        )
+        .scalars()
+        .all()
+    )
+    print(check)
+    if not check:
+        access_token = AccessToken(
+            user_id=current_user.id,
+            access_token=r.json()["access_token"],
+            refresh_token=r.json()["refresh_token"],
+        )
+        db.session.add(access_token)
+        db.session.commit()
+    else:
+        check[0].access_token = r.json()["access_token"]
+        check[0].refresh_token = r.json()["refresh_token"]
+        db.session.commit()
+
+    print(check)
+    print(check[0].access_token)
+    print(check[0].refresh_token)
+
     return redirect("/newmusic")
 
 
@@ -99,10 +136,10 @@ def callback():
 @login_required
 def newmusic():
 
-    print(request.form)
+    # print(request.form)
 
-    print(current_user)
-    print(current_user.id)
+    # print(current_user)
+    # print(current_user.id)
 
     if not headers:
         print("headers is empty.")
@@ -598,7 +635,7 @@ def trackIndividual():
 
             if "selectedTag" not in request.form.values():
                 flash("Please select a tag.", category="error")
-                return redirect("/track")
+                return redirect("/track-individual")
 
             requestDict = request.form.to_dict()
             # print(requestDict)
@@ -628,8 +665,19 @@ def trackIndividual():
                     .all()
                 )
                 if not check:
+                    tag_id = (
+                        db.session.execute(
+                            db.select(UserTags.id)
+                            .where(UserTags.user_id == current_user.id)
+                            .where(UserTags.tag == tag)
+                        )
+                        .scalars()
+                        .all()[0]
+                    )
+                    print(tag_id)
                     addArtist = AddedArtists(
                         user_id=current_user.id,
+                        tag_id=tag_id,
                         artist_id=addedArtistID,
                         name=list(requestDict.keys())[0],
                         tag=tag,

@@ -8,7 +8,7 @@ from website import create_app
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask
 from flask_login import current_user
-
+import requests
 import datetime
 
 app = create_app()
@@ -16,16 +16,62 @@ app = create_app()
 process = subprocess.Popen("flask run")
 time.sleep(5)
 
+uris = []
+
 if process.poll() is None:
     with app.app_context():
-        # result = (
-        #     db.session.execute(db.select(UserTags).where(UserTags.auto_update == True))
-        #     .scalars()
-        #     .all()
-        # )
-        # print(result)
-        print(current_user)
-        print(current_user.id)
+        tagList = (
+            db.session.execute(db.select(UserTags).where(UserTags.auto_update == True))
+            .scalars()
+            .all()
+        )
+        for tag in tagList:
+            artistList = (
+                db.session.execute(
+                    db.select(AddedArtists).where(AddedArtists.tag_id == tag.id)
+                )
+                .scalars()
+                .all()
+            )
+            for artist in artistList:
+                access_token = (
+                    db.session.execute(
+                        db.select(AccessToken.access_token).where(
+                            AccessToken.user_id == tag.user_id
+                        )
+                    )
+                    .scalars()
+                    .all()[0]
+                )
+                print(access_token)
+                headers = {"Authorization": "Bearer " + access_token}
+                params = {"include_groups": "album,single"}
+                r = requests.get(
+                    "https://api.spotify.com/v1/artists/"
+                    + artist.artist_id
+                    + "/albums",
+                    params=params,
+                    headers=headers,
+                )
+                for item in range(len(r.json()["items"])):
+                    release_date = r.json()["items"][item]["release_date"]
+                    release_date = datetime.datetime(
+                        int(release_date[0:4]),
+                        int(release_date[5:7]),
+                        int(release_date[8:]),
+                    )
+                    if tag.auto_update_date_last_checked < release_date:
+                        albumID = r.json()["items"][item]["id"]
+                        r = requests.get(
+                            "https://api.spotify.com/v1/albums/{}/tracks".format(
+                                albumID
+                            ),
+                            headers=headers,
+                        )
+                        for item in range(len(r.json()["items"])):
+                            uris.append(r.json()["items"][item]["uri"])
+
+                        # add the shit
 
         os.kill(os.getpid(), signal.SIGINT)
 

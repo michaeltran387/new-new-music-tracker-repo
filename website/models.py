@@ -35,6 +35,7 @@ class AddedArtists(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    tag_id: Mapped[int] = mapped_column(ForeignKey("userTags.id"))
     artist_id: Mapped[str] = mapped_column(nullable=False)
     name: Mapped[str] = mapped_column(nullable=False)
     tag: Mapped[str] = mapped_column(nullable=False)
@@ -47,10 +48,19 @@ class UserTags(db.Model):
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     tag: Mapped[str] = mapped_column(nullable=False)
     auto_update: Mapped[bool] = mapped_column(default=False)
-    auto_update_playlist_id: Mapped[str] = mapped_column(default="")
+    auto_update_playlist_id: Mapped[str] = mapped_column(nullable=True)
     auto_update_date_last_checked: Mapped[datetime.datetime] = mapped_column(
-        default=datetime.datetime(1, 1, 1)
+        nullable=True
     )
+
+
+class AccessToken(db.Model):
+    __tablename__ = "accessToken"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    access_token: Mapped[str] = mapped_column(nullable=False)
+    refresh_token: Mapped[str] = mapped_column(nullable=False)
 
 
 # class FlaggedMusic(db.Model):
