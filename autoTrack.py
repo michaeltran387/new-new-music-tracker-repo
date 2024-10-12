@@ -10,6 +10,7 @@ from flask import Flask
 from flask_login import current_user
 import requests
 import datetime
+import base64
 
 app = create_app()
 
@@ -26,6 +27,16 @@ if process.poll() is None:
             .all()
         )
         for tag in tagList:
+            access_token = (
+                db.session.execute(
+                    db.select(AccessToken.access_token).where(
+                        AccessToken.user_id == tag.user_id
+                    )
+                )
+                .scalars()
+                .all()[0]
+            )
+            headers = {"Authorization": "Bearer " + access_token}
             artistList = (
                 db.session.execute(
                     db.select(AddedArtists).where(AddedArtists.tag_id == tag.id)
@@ -34,17 +45,6 @@ if process.poll() is None:
                 .all()
             )
             for artist in artistList:
-                access_token = (
-                    db.session.execute(
-                        db.select(AccessToken.access_token).where(
-                            AccessToken.user_id == tag.user_id
-                        )
-                    )
-                    .scalars()
-                    .all()[0]
-                )
-                print(access_token)
-                headers = {"Authorization": "Bearer " + access_token}
                 params = {"include_groups": "album,single"}
                 r = requests.get(
                     "https://api.spotify.com/v1/artists/"
@@ -53,15 +53,83 @@ if process.poll() is None:
                     params=params,
                     headers=headers,
                 )
-                for item in range(len(r.json()["items"])):
-                    release_date = r.json()["items"][item]["release_date"]
+                if r.status_code == 401:
+                    refresh_token = db.session.execute(
+                        db.select(AccessToken.refresh_token).where(
+                            AccessToken.user_id == tag.user_id
+                        )
+                    )
+                    body = {
+                        "grant_type": "refresh_token",
+                        "refresh_token": refresh_token,
+                    }
+                    authorization = str(
+                        base64.b64encode(
+                            b"b2817ab1a6a6471dae92088510ed25f1:d4fad7b2dbac4eca9c558e39c584a6d0"
+                        ).decode()
+                    )
+
+                    headersAuth = {
+                        "Authorization": "Basic " + authorization,
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    }
+
+                    r = requests.post(
+                        "https://accounts.spotify.com/api/token",
+                        headers=headersAuth,
+                        data=body,
+                    )
+                    access_token_object = (
+                        db.session.execute(
+                            db.select(AccessToken).where(
+                                AccessToken.user_id == tag.user_id
+                            )
+                        )
+                        .scalars()
+                        .all()[0]
+                    )
+                    access_token_object.access_token = r.json()["access_token"]
+                    db.session.commit()
+
+                    r = requests.get(
+                        "https://api.spotify.com/v1/artists/"
+                        + artist.artist_id
+                        + "/albums",
+                        params=params,
+                        headers=headers,
+                    )
+                    access_token = (
+                        db.session.execute(
+                            db.select(AccessToken.access_token).where(
+                                AccessToken.user_id == tag.user_id
+                            )
+                        )
+                        .scalars()
+                        .all()[0]
+                    )
+                    headers = {"Authorization": "Bearer " + access_token}
+                # print(r.json()["items"][0]["release_date"])
+                # print("release_date" == "release_date")
+                # r = r.json()
+                # print(type(r))
+                # print(r["items"][0]["release_date"])
+                # for item in range(len(r.json()["items"])):
+                rdict = r.json()
+                for item in range(len(rdict["items"])):
+                    print(rdict["items"][item]["release_date"])
+                    # print(r.json()["items"][item])
+                    # print(item)
+                    # print(len(r.json()["items"]))
+                    # print(r.json().get("release_date"))
+                    release_date = rdict["items"][item]["release_date"]
                     release_date = datetime.datetime(
                         int(release_date[0:4]),
                         int(release_date[5:7]),
                         int(release_date[8:]),
                     )
-                    if tag.auto_update_date_last_checked < release_date:
-                        albumID = r.json()["items"][item]["id"]
+                    # if tag.auto_update_date_last_checked < release_date:
+                    if True:
+                        albumID = rdict["items"][item]["id"]
                         r = requests.get(
                             "https://api.spotify.com/v1/albums/{}/tracks".format(
                                 albumID
@@ -71,9 +139,49 @@ if process.poll() is None:
                         for item in range(len(r.json()["items"])):
                             uris.append(r.json()["items"][item]["uri"])
 
-                        # add the shit
+            data = {"uris": uris}
+            print(data)
+            if len(uris) > 100:
+                uris2 = uris[0:101]
+                print(len(uris2))
+                data = {"uris": uris}
+                r = requests.post(
+                    "https://api.spotify.com/v1/playlists/{}/tracks".format(
+                        tag.auto_update_playlist_id
+                    ),
+                    headers=headers,
+                    json=data,
+                )
+            print(r.json())
 
-        os.kill(os.getpid(), signal.SIGINT)
+            # a = 0
+            # b = 99
+            # URITempArray = []
+            # if len(URIArray) > 100:
+            #     while True:
+            #         if a == b:
+            #             URITempArray = URIArray[a]
+            #         else:
+            #             URITempArray = URIArray[a:b]
+            #         data = {"uris": URITempArray}
+            #         requests.post(
+            #             addItemsToPlaylistEndpoint, headers=headers, json=data
+            #         )
+            #         if b == len(URIArray) - 1:
+            #             break
+            #         a += 100
+            #         b += 100
+            #         if b > len(URIArray) - 1:
+            #             b = len(URIArray) - 1
+
+            # else:
+            #     data = {"uris": URIArray}
+            #     requests.post(
+            #         addItemsToPlaylistEndpoint, headers=headers, json=data
+            #     )
+
+
+os.kill(os.getpid(), signal.SIGINT)
 
 # x = datetime.datetime(1, 1, 1)
 # y = datetime.datetime(2, 1, 1)
