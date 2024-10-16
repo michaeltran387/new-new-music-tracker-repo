@@ -108,27 +108,23 @@ if process.poll() is None:
                         .all()[0]
                     )
                     headers = {"Authorization": "Bearer " + access_token}
-                # print(r.json()["items"][0]["release_date"])
-                # print("release_date" == "release_date")
-                # r = r.json()
-                # print(type(r))
-                # print(r["items"][0]["release_date"])
-                # for item in range(len(r.json()["items"])):
+                    print(r.json())
+                    os.kill(os.getpid(), signal.SIGINT)
                 rdict = r.json()
                 for item in range(len(rdict["items"])):
                     print(rdict["items"][item]["release_date"])
-                    # print(r.json()["items"][item])
-                    # print(item)
-                    # print(len(r.json()["items"]))
-                    # print(r.json().get("release_date"))
                     release_date = rdict["items"][item]["release_date"]
-                    release_date = datetime.datetime(
-                        int(release_date[0:4]),
-                        int(release_date[5:7]),
-                        int(release_date[8:]),
-                    )
-                    # if tag.auto_update_date_last_checked < release_date:
-                    if True:
+                    print(len(rdict["items"][item]["release_date"]) == 4)
+                    if len(rdict["items"][item]["release_date"]) == 4:
+                        release_date = datetime.datetime(int(release_date[0:4]), 1, 1)
+                    else:
+                        release_date = datetime.datetime(
+                            int(release_date[0:4]),
+                            int(release_date[5:7]),
+                            int(release_date[8:]),
+                        )
+                    if tag.auto_update_date_last_checked < release_date:
+                        # if True:
                         albumID = rdict["items"][item]["id"]
                         r = requests.get(
                             "https://api.spotify.com/v1/albums/{}/tracks".format(
@@ -139,11 +135,32 @@ if process.poll() is None:
                         for item in range(len(r.json()["items"])):
                             uris.append(r.json()["items"][item]["uri"])
 
-            data = {"uris": uris}
-            print(data)
+            URITempArray = []
+            a = 0
+            b = 99
             if len(uris) > 100:
-                uris2 = uris[0:101]
-                print(len(uris2))
+                while True:
+                    if a == b:
+                        URITempArray = uris[a]
+                    else:
+                        URITempArray = uris[a:b]
+                    data = {"uris": URITempArray}
+                    r = requests.post(
+                        "https://api.spotify.com/v1/playlists/{}/tracks".format(
+                            tag.auto_update_playlist_id
+                        ),
+                        headers=headers,
+                        json=data,
+                    )
+                    if b == len(uris) - 1:
+                        break
+                    a += 100
+                    b += 100
+                    if b > len(uris) - 1:
+                        b = len(uris) - 1
+                print("check it")
+
+            else:
                 data = {"uris": uris}
                 r = requests.post(
                     "https://api.spotify.com/v1/playlists/{}/tracks".format(
@@ -152,33 +169,9 @@ if process.poll() is None:
                     headers=headers,
                     json=data,
                 )
-            print(r.json())
-
-            # a = 0
-            # b = 99
-            # URITempArray = []
-            # if len(URIArray) > 100:
-            #     while True:
-            #         if a == b:
-            #             URITempArray = URIArray[a]
-            #         else:
-            #             URITempArray = URIArray[a:b]
-            #         data = {"uris": URITempArray}
-            #         requests.post(
-            #             addItemsToPlaylistEndpoint, headers=headers, json=data
-            #         )
-            #         if b == len(URIArray) - 1:
-            #             break
-            #         a += 100
-            #         b += 100
-            #         if b > len(URIArray) - 1:
-            #             b = len(URIArray) - 1
-
-            # else:
-            #     data = {"uris": URIArray}
-            #     requests.post(
-            #         addItemsToPlaylistEndpoint, headers=headers, json=data
-            #     )
+                print("check it")
+            tag.auto_update_date_last_checked = datetime.datetime.now()
+            db.session.commit()
 
 
 os.kill(os.getpid(), signal.SIGINT)

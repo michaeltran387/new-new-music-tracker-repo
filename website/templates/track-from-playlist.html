@@ -18,7 +18,12 @@
       <tr>
         <td>
           {% if not playlist.image %}
-          <p>No Album Art</p>
+          <div
+            class="d-flex align-items-center"
+            style="width: 100px; height: 100px"
+          >
+            <div class="align-self-center">No Album Art</div>
+          </div>
           {% else %}
           <img
             src="{{playlist.image}}"
@@ -71,7 +76,12 @@
       <tr>
         <td>
           {% if not playlist.image %}
-          <p>No Album Art</p>
+          <div
+            class="d-flex align-items-center"
+            style="width: 100px; height: 100px"
+          >
+            <div class="align-self-center">No Album Art</div>
+          </div>
           {% else %}
           <img
             src="{{playlist.image}}"

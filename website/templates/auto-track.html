@@ -28,8 +28,10 @@
 </div>
 
 <div class="d-flex flex-row m-3" id="existingPlaylistDiv" style="display: none">
+<!-- <div class="d-flex flex-row m-3" id="existingPlaylistDiv"> -->
 <form>
 <table class="table" style="display:none" id="userPlaylists1">
+<!-- <table class="table" id="userPlaylists1"> -->
 <thead>
     <tr>
     <th class="text-center" style="width:20%">Playlist Art</th>
@@ -45,7 +47,7 @@
 {{playlist.name}}
 </td>
 <td>
-<input type="radio" class="btn-check" name="{{playlist.name}}" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
+<input type="radio" class="btn-check" value="{{playlist.name}}" name="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
 <label class="btn btn-outline-primary" for="{{playlist.playlistID}}">Select</label>
 </td>
 </tr>
@@ -53,6 +55,7 @@
 {% endfor %}
 </table>
 <table class="table" style="display:none" id="userPlaylists2">
+<!-- <table class="table" id="userPlaylists2"> -->
 <thead>
     <tr>
     <th style="width:20%">Playlist Art</th>
@@ -68,7 +71,7 @@
     {{playlist.name}}
 </td>
 <td>
-    <input type="radio" class="btn-check" name="{{playlist.name}}" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
+    <input type="radio" class="btn-check" value="{{playlist.name}}" name="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
     <label class="btn btn-outline-primary" for="{{playlist.playlistID}}">Select</label>
 </td>
 </tr>
@@ -76,6 +79,7 @@
 {% endfor %}
 </table>
 <table class="table" style="display:none" id="userPlaylists3">
+<!-- <table class="table" id="userPlaylists3"> -->
 <thead>
     <tr>
     <th style="width:20%">Playlist Art</th>
@@ -91,7 +95,7 @@
     {{playlist.name}}
 </td>
 <td>
-    <input type="radio" class="btn-check" name="{{playlist.name}}" value="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
+    <input type="radio" class="btn-check" value="{{playlist.name}}" name="{{playlist.playlistID}}" id="{{playlist.playlistID}}">
     <label class="btn btn-outline-primary" for="{{playlist.playlistID}}">Select</label>
 </td>
 </tr>
@@ -99,7 +103,9 @@
 {% endfor %}
 </table>
 
-<button type="submit" style="position:absolute;bottom:3px;right:3px" class="btn btn-lg btn-primary m-2">Submit</button>
+<div id="test">
+<button type="submit" style="position:fixed;bottom:3px;right:3px" class="btn btn-lg btn-primary m-2">Submit</button>
+</div>
 {% endif %} 
 
 
@@ -113,12 +119,16 @@ function testFunction() {
     var a = document.getElementById("userPlaylists1");
     var b = document.getElementById("userPlaylists2");
     var c = document.getElementById("userPlaylists3");
+    var d = document.getElementById("test");
+    var content = d.innerHTML;
+
     if (x == "newPlaylist") {
     y.style.display = "block";
     z.style.display = "none";
     a.style.display = "none";
     b.style.display = "none";
     c.style.display = "none";
+    // console.log(document.getElementById(d)).style.display;
     };
     
     if (x == "existingPlaylist") {
@@ -127,6 +137,9 @@ function testFunction() {
     a.style.display = "table";
     b.style.display = "table";
     c.style.display = "table";
+    
+    // d.style.display = "none"
+    // d.style.display = "absolute"
     };
     
 }

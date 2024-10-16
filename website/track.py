@@ -5,6 +5,7 @@ from .models import *
 from flask_login import login_required, current_user
 import base64
 import json
+import random
 
 
 track_blueprint = Blueprint("track", __name__)
@@ -61,7 +62,7 @@ def spotifyauth():
         "client_id": "b2817ab1a6a6471dae92088510ed25f1",
         "response_type": "code",
         "redirect_uri": "http://127.0.0.1:5000/callback",
-        "scope": "playlist-modify-public",
+        "scope": "playlist-read-private,playlist-modify-public,playlist-modify-private",
         # "show_dialog": True,
     }
 
@@ -487,6 +488,7 @@ def tagList():
                 )
                 for artist in result:
                     artist.tag = request.form["editedTag"]
+                db.session.commit()
 
         if "removeTag" in request.form:
             result = (
@@ -518,58 +520,121 @@ def tagList():
             flash("Tag and artists deleted successfully.", category="success")
 
         if "removeArtist" in request.form.keys():
-            AddedArtists.query.filter_by(id=request.form["removeArtist"]).delete()
+            print(request.form)
+            AddedArtists.query.filter_by(
+                artist_id=request.form["removeArtist"]
+            ).delete()
             db.session.commit()
             flash("Artist removed successfully.", category="success")
 
-    result = db.session.execute(
-        db.select(UserTags.tag).where(UserTags.user_id == current_user.id)
-    ).scalars()
+    test = (
+        db.session.execute(db.select(UserTags).where(UserTags.tag == "test"))
+        .scalars()
+        .all()[0]
+    )
+    print(test.auto_update_date_last_checked)
+    # test.auto_update_date_last_checked = datetime.datetime(2020, 1, 1)
+    # db.session.commit()
+    # test2 = (
+    #     db.session.execute(db.select(UserTags).where(UserTags.tag == "test"))
+    #     .scalars()
+    #     .all()[0]
+    # )
+    # print(test2.auto_update_date_last_checked)
 
-    tagList = result.all()
+    class UserTagsAndArtists:
+        def __init__(self, editID, deleteID, tag, artists, linkedPlaylistName):
+            self.editID = editID
+            self.deleteID = deleteID
+            self.tag = tag
+            self.artists = artists
+            self.linkedPlaylistName = linkedPlaylistName
 
-    artistList = []
+    result = (
+        db.session.execute(
+            db.select(UserTags).where(UserTags.user_id == current_user.id)
+        )
+        .scalars()
+        .all()
+    )
 
-    for tag in tagList:
+    userTagsUIInfo = []
+    # artistList = []
+    editIDList = random.sample(range(1, len(result) + 1), len(result))
+    deleteIDList = random.sample(range(1, len(result) + 1), len(result))
+    for item in range(len(deleteIDList)):
+        deleteIDList[item] = -abs(deleteIDList[item])
+    # print(editIDList)
+    # print(deleteIDList)
+    counter = 0
+
+    for userTagsObj in result:
         result = (
             db.session.execute(
                 db.select(AddedArtists)
-                .where(AddedArtists.tag == tag)
+                .where(AddedArtists.tag == userTagsObj.tag)
                 .where(AddedArtists.user_id == current_user.id)
             )
             .scalars()
             .all()
         )
-        result.sort(key=lambda x: x.name)
-        artistList.append(result)
 
-    userTagsAndArtistsDict = {}
+        # print(userTagsObj.auto_update_playlist_id)
+        if userTagsObj.auto_update_playlist_id is not None:
+            r = requests.get(
+                "https://api.spotify.com/v1/playlists/{}".format(
+                    userTagsObj.auto_update_playlist_id
+                ),
+                headers=headers,
+            )
+            # print(r.json())
+            obj = UserTagsAndArtists(
+                editIDList[counter],
+                deleteIDList[counter],
+                userTagsObj.tag,
+                result,
+                r.json()["name"],
+            )
+            userTagsUIInfo.append(obj)
+        else:
+            obj = UserTagsAndArtists(
+                editIDList[counter], deleteIDList[counter], userTagsObj.tag, result, ""
+            )
+            userTagsUIInfo.append(obj)
+        counter += 1
 
-    for counter, tag in enumerate(tagList):
-        userTagsAndArtistsDict[tag] = artistList[counter]
+    userTagsUIInfo.sort(key=lambda x: x.tag)
+    # userTagsAndArtistsDict = {}
 
-    userTagsAndArtistsDict = {
-        k: v
-        for k, v in sorted(
-            userTagsAndArtistsDict.items(),
-            key=lambda item: len(item[1]),
-            reverse=True,
-        )
-    }
+    # for counter, tag in enumerate(tagList):
+    #     userTagsAndArtistsDict[tag] = artistList[counter]
 
-    class UserTagsAndArtists:
-        def __init__(self, tag, artists):
-            self.tag = tag
-            self.artists = artists
+    # userTagsAndArtistsDict = {
+    #     k: v
+    #     for k, v in sorted(
+    #         userTagsAndArtistsDict.items(),
+    #         key=lambda item: len(item[1]),
+    #         reverse=True,
+    #     )
+    # }
 
-    userTagsAndArtistsList = []
-    for tag, artists in userTagsAndArtistsDict.items():
-        userTagsAndArtistsObj = UserTagsAndArtists(tag, artists)
-        userTagsAndArtistsList.append(userTagsAndArtistsObj)
+    # userTagsAndArtistsDict = {
+    #     k: v
+    #     for k, v in sorted(userTagsAndArtistsDict.items(), key=lambda item: (item[0]))
+    # }
 
-    return render_template(
-        "tag-list.html", userTagsAndArtistsList=userTagsAndArtistsList
-    )
+    # class UserTagsAndArtists:
+    #     def __init__(self, tag, artists, linkedPlaylist):
+    #         self.tag = tag
+    #         self.artists = artists
+    #         self.linkedPlaylist = linkedPlaylist
+
+    # userTagsAndArtistsList = []
+    # for tag, artists in userTagsAndArtistsDict.items():
+    #     userTagsAndArtistsObj = UserTagsAndArtists(tag, artists)
+    #     userTagsAndArtistsList.append(userTagsAndArtistsObj)
+
+    return render_template("tag-list.html", userTagsUIInfo=userTagsUIInfo)
 
 
 @track_blueprint.route("/track-individual", methods=["GET", "POST"])
@@ -585,6 +650,7 @@ def trackIndividual():
 
         return render_template("track-individual.html")
     if request.method == "POST":
+        print(request.form)
         if "searchArtist" in request.form:
 
             searchArtist = request.form.get("searchArtist")
@@ -595,25 +661,37 @@ def trackIndividual():
             r = requests.get(
                 "https://api.spotify.com/v1/search", params=payload, headers=headers
             )
+            # print(r.json())
 
             global searchResultList
             searchResultList = []
 
-            for i in range(5):
-                if len(r.json()["artists"]["items"]) < 5:
+            for i in range(10):
+                # print(r.json())
+                if len(r.json()["artists"]["items"]) < 10:
                     flash(
                         "Less than 5 items were found. Please check your search and try again.",
                         category="error",
                     )
                     return redirect("add-all")
-                searchResultList.append(
-                    SearchResultTrack(
-                        r.json()["artists"]["items"][i]["name"],
-                        r.json()["artists"]["items"][i]["images"][0]["url"],
-                        r.json()["artists"]["items"][i]["external_urls"]["spotify"],
-                        r.json()["artists"]["items"][i]["id"],
+                if r.json()["artists"]["items"][i]["images"]:
+                    searchResultList.append(
+                        SearchResultTrack(
+                            r.json()["artists"]["items"][i]["name"],
+                            r.json()["artists"]["items"][i]["images"][0]["url"],
+                            r.json()["artists"]["items"][i]["external_urls"]["spotify"],
+                            r.json()["artists"]["items"][i]["id"],
+                        )
                     )
-                )
+                else:
+                    searchResultList.append(
+                        SearchResultTrack(
+                            r.json()["artists"]["items"][i]["name"],
+                            "",
+                            r.json()["artists"]["items"][i]["external_urls"]["spotify"],
+                            r.json()["artists"]["items"][i]["id"],
+                        )
+                    )
 
             global userTags
             userTags = (
@@ -710,9 +788,12 @@ def trackFromPlaylist():
         return redirect("/")
 
     if request.method == "GET":
-        r = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
 
-        userPlaylists = []
+        limit = 20
+        params = {"limit": limit}
+        r = requests.get(
+            "https://api.spotify.com/v1/me/playlists", headers=headers, params=params
+        )
 
         class UserPlaylists:
             def __init__(self, name, playlistID, image, tracks):
@@ -721,8 +802,12 @@ def trackFromPlaylist():
                 self.image = image
                 self.tracks = tracks
 
+        userPlaylists = []
+
         while True:
-            for item in range(r.json()["total"]):
+            if len(r.json()["items"]) < limit:
+                limit = len(r.json()["items"])
+            for item in range(limit):
                 if not r.json()["items"][item]["images"]:
                     userPlaylists.append(
                         UserPlaylists(
@@ -741,14 +826,19 @@ def trackFromPlaylist():
                             r.json()["items"][item]["tracks"]["href"],
                         )
                     )
-
-            if r.json()["next"] == None:
+            if r.json()["next"] is None:
                 break
             else:
                 r = requests.get(r.json()["next"], headers=headers)
 
         userPlaylistsOdd = []
         userPlaylistsEven = []
+
+        # for item in userPlaylists:
+        #     print(item.name)
+        userPlaylists.sort(key=lambda item: item.name)
+        # for item in userPlaylists:
+        #     print(item.name)
 
         for playlist in range(len(userPlaylists)):
             if playlist % 2 == 1:
@@ -776,9 +866,11 @@ def trackFromPlaylistCallback():
         playlistID = list(request.form.keys())[0]
 
         url = list(request.form.keys())[1]
+
         params = {"fields": "limit,total,next,previous,items(track(artists(id,name)))"}
 
         r = requests.get(url, headers=headers, params=params)
+        # print(r.url)
 
         artistList = []
         artistIDList = []
@@ -791,11 +883,14 @@ def trackFromPlaylistCallback():
                 self.name = name
                 self.image = image
 
+        callCounter = 0
+
         while (r.json()["next"] != None) or (r.json()["previous"] == None):
             counter += 1
 
             for item in range(len(r.json()["items"])):
                 for artist in range(len(r.json()["items"][item]["track"]["artists"])):
+                    # print(r.json()["items"][item]["track"]["artists"])
 
                     if (
                         r.json()["items"][item]["track"]["artists"][artist]["id"]
@@ -809,9 +904,12 @@ def trackFromPlaylistCallback():
                             ),
                             headers=headers,
                         )
+                        callCounter += 1
                         artistIDList.append(
                             r.json()["items"][item]["track"]["artists"][artist]["id"]
                         )
+                        # print(callCounter)
+                        # print(r2.json())
                         if r2.json()["images"]:
                             artistList.append(
                                 Artist(
@@ -885,6 +983,9 @@ def autoTrack():
             params=params,
         )
 
+        r2 = requests.get("https://api.spotify.com/v1/me", headers=headers)
+        spotifyUserID = r2.json()["id"]
+
         userPlaylists = []
 
         class UserPlaylists2:
@@ -894,19 +995,20 @@ def autoTrack():
                 self.image = image
 
         for playlist in range(len(r.json()["items"])):
-            if not r.json()["items"][playlist]["images"]:
-                playlistObject = UserPlaylists2(
-                    r.json()["items"][playlist]["name"],
-                    r.json()["items"][playlist]["id"],
-                    "",
-                )
-            else:
-                playlistObject = UserPlaylists2(
-                    r.json()["items"][playlist]["name"],
-                    r.json()["items"][playlist]["id"],
-                    r.json()["items"][playlist]["images"][0]["url"],
-                )
-            userPlaylists.append(playlistObject)
+            if spotifyUserID == r.json()["items"][playlist]["owner"]["id"]:
+                if not r.json()["items"][playlist]["images"]:
+                    playlistObject = UserPlaylists2(
+                        r.json()["items"][playlist]["name"],
+                        r.json()["items"][playlist]["id"],
+                        "",
+                    )
+                else:
+                    playlistObject = UserPlaylists2(
+                        r.json()["items"][playlist]["name"],
+                        r.json()["items"][playlist]["id"],
+                        r.json()["items"][playlist]["images"][0]["url"],
+                    )
+                userPlaylists.append(playlistObject)
 
         userPlaylists1 = []
         userPlaylists2 = []
@@ -1064,8 +1166,10 @@ def autoTrack():
                 )
 
         if request.form["addToPlaylistSelect"] == "existingPlaylist":
+            print(request.form)
 
-            if len(list(request.form.keys())) == len(tagList) + 2:
+            print(tagList)
+            if len(list(request.form.values())) == len(tagList) + 2:
                 flash("Please select an existing playlist.", category="error")
                 return redirect("auto-track")
 
@@ -1076,14 +1180,15 @@ def autoTrack():
                     .where(UserTags.tag == tag)
                 ).scalar_one()
                 userTagsObject.auto_update = True
-                userTagsObject.auto_update_playlist_id = list(request.form.values())[-1]
+                userTagsObject.auto_update_playlist_id = list(request.form.keys())[-1]
+
                 userTagsObject.auto_update_date_last_checked = datetime.datetime.now()
                 db.session.commit()
 
             if len(tagList) == 1:
                 flash(
                     "Tag {} has been linked to playlist {}.".format(
-                        tagList[0], list(request.form.keys())[-1]
+                        tagList[0], list(request.form.values())[-1]
                     ),
                     category="success",
                 )
@@ -1092,7 +1197,7 @@ def autoTrack():
                     "Tags {} has been linked to playlist {}.".format(
                         "{} and {}".format(tagList[0]),
                         tagList[1],
-                        list(request.form.keys())[-1],
+                        list(request.form.values())[-1],
                     ),
                     category="success",
                 )
@@ -1107,7 +1212,7 @@ def autoTrack():
                 x += tagList[-1]
                 flash(
                     "Tags {} have been linked to playlist {}.".format(
-                        x, list(request.form.keys())[-1]
+                        x, list(request.form.values())[-1]
                     ),
                     category="success",
                 )

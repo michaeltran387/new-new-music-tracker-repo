@@ -30,87 +30,38 @@
 </form>
 
 
-  {% for tagAndArtists in userTagsAndArtistsList %}
-  
+  {% for tagAndArtists in userTagsUIInfo %}
+  <form action="/tag-list" method="POST">
   <table class="table table-hover">
     <thead>
       <tr class="table-primary">
-          <th><div class="d-flex"><h5 class="me-auto align-self-center m-2">{{tagAndArtists.tag}}</h5>
+          <th><div class="d-flex flex-row justify-content-between align-items-center"><h5 class="m-2">{{tagAndArtists.tag}}</h5>
+            
+            {%if tagAndArtists.linkedPlaylistName%}
+            <h7 class="m-2">Linked to: {{tagAndArtists.linkedPlaylistName}}</h7>
+            {%endif%}
+            
+            <!-- <button type="button" class="btn btn-outline-secondary align-self-center m-1" onclick="editTag()">Edit Tag</button> -->
+            
 
-            <!-- <button type="button" class="btn btn-outline-primary align-self-center m-1" data-bs-toggle="modal" data-bs-target="#addArtistModal">
-              Add Artist
-            </button>
-            <div class="modal fade" id="addArtistModal" tabindex="-1">
-              <form action="/tag-list" method="POST">
-              <div class="modal-dialog modal-xl">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                  </div>
-                  <div class="modal-body">
-                  
-                    <div class="input-group">
-                      <input
-                        class="form-control"
-                        type="search"
-                        placeholder="Artist Name"
-                        name="artistSearch"
-                      />
-                      <button class="btn btn-outline-success" type="submit">
-                        Search
-                      </button>
-                    </div>
-                  
-                    {% if searchResultList %}
-                    {% for result in searchResultList %}
-
-                    <ul class="list-group list-group-horizontal">
-                      <img
-                        src="{{searchResultItem.picture}}"
-                        class="list-group-item list-group-item-action"
-                        style="height: 200px; width: 200px"
-                      />
-                      <form action="#" method="POST">
-                        <ul class="list-group">
-                          <h5 class="m-3">{{searchResultItem.name}}</h5>
-                          <a href="{{searchResultItem.link}}" class="mx-3">Spotify Link</a>
-                          <input type="hidden" name="{{searchResultItem.id}}" />
-                          <input type="hidden" name="{{searchResultItem.name}}" />
-                          <button type="submit" class="btn btn-outline-primary m-3">
-                            Add Artist
-                          </button>
-                        </ul>
-                      </form>
-                    </ul>
-
-                    {% endfor %}
-                    {% endif %}
-                  </div>
-                   <div class="modal-footer">
-                    <button type="submit" class="btn btn-outline-primary">Submit</button>
-                  </div>
-                </div>
-              </div>
-            </form>
-          </div> -->
-
-
-            <button type="button" class="btn btn-outline-secondary align-self-center m-1" data-bs-toggle="modal" data-bs-target="#editTagModal">
+            
+            <button type="button" class="btn btn-outline-secondary align-self-center m-1" data-bs-toggle="modal" data-bs-target="#{{tagAndArtists.editID}}">
               Edit Tag
             </button>
-            <div class="modal fade" id="editTagModal" tabindex="-1">
-              <form action="/tag-list" method="POST">
+          
+            <div class="modal fade" id="{{tagAndArtists.editID}}" tabindex="-1">
+              
               <div class="modal-dialog">
                 <div class="modal-content">
                   <div class="modal-header">
-                    <!-- <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1> -->
+                    
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                   </div>
                   <div class="modal-body ">
                   
                     <div class="form-floating">
                     <input type="text" class="form-control" id="editedTag" placeholder="{{tagAndArtists.tag}}" value="{{tagAndArtists.tag}}" name="editedTag">
+                    
                     <label for="editedTag">Edit Tag</label>
                     <input type="hidden" value="{{tagAndArtists.tag}}" name="originalTag">
                     
@@ -125,10 +76,10 @@
             </form>
           </div>
 
-              <button type="submit" class="btn btn-outline-danger align-self-center m-1" data-bs-toggle="modal" data-bs-target="#removeTagModal" >
+              <button type="button" class="btn btn-outline-danger align-self-center m-1" data-bs-toggle="modal" data-bs-target="#{{tagAndArtists.deleteID}}" >
               Remove
               </button>
-              <div class="modal fade" id="removeTagModal" tabindex="-1">
+              <div class="modal fade" id="{{tagAndArtists.deleteID}}" tabindex="-1">
                 <form action="/tag-list" method="POST">
                 <div class="modal-dialog">
                   <div class="modal-content">
@@ -144,15 +95,31 @@
                     </div>
                   </div>
                 </div>
-              </form>
+              
             </div>
+          </form>
+            
       </div>
+      
+    </div>
+    
     </th>
           
-        </div>
+        
       </tr>
     </thead>
     <tbody>
+      <tr><td><div id="editTag" style="display:none">
+        <form action="/tag-list" method="POST">
+        <div class="form-floating">
+        <input type="text" class="form-control" id="editedTag" placeholder="{{tagAndArtists.tag}}" value="{{tagAndArtists.tag}}" name="editedTag">
+        
+        <label for="editedTag">Edit Tag</label>
+        <input type="hidden" value="{{tagAndArtists.tag}}" name="originalTag">
+        </div>
+        {{tagAndArtists.tag}}
+        </form>
+      </div></td></tr>
       {% for artist in tagAndArtists.artists %}
       <form action="/tag-list" method="POST">
       <tr>
@@ -164,7 +131,7 @@
                 type="submit"
                 class="btn btn-outline-danger"
                 name="removeArtist"
-                value="{{artist.id}}">
+                value="{{artist.artist_id}}">
                 Remove
               </button>
             </div>
@@ -172,10 +139,29 @@
         </td>
       </tr>
     </form>
-      {% endfor %}
+      {%endfor%}
+      
+    
     </tbody>
   </table>
+</form>
+  
 
   {% endfor%}
+  <!-- <script>
+    var a = document.getElementById("editTag")
+    var counter = 0
+    function editTag(){
+      if (counter % 2 == 0) {
+        a.style.display="table"
+      }
+      else {
+        a.style.display="none"
+      }
+      console.log(counter)
+      counter++;
+    }
+
+  </script> -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 {% endblock %}
