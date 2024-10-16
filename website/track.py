@@ -112,7 +112,7 @@ def callback():
         .scalars()
         .all()
     )
-    print(check)
+    # print(check)
     if not check:
         access_token = AccessToken(
             user_id=current_user.id,
@@ -126,9 +126,9 @@ def callback():
         check[0].refresh_token = r.json()["refresh_token"]
         db.session.commit()
 
-    print(check)
-    print(check[0].access_token)
-    print(check[0].refresh_token)
+    # print(check)
+    # print(check[0].access_token)
+    # print(check[0].refresh_token)
 
     return redirect("/newmusic")
 
@@ -216,10 +216,12 @@ def newmusic():
                 )
 
                 r = requests.get(endpoint, params=params, headers=headers)
+                print(r.url)
 
                 while True:
 
                     for i in range(len(r.json()["items"])):
+
                         newMusicList.append(
                             NewMusic(
                                 artist.name,
@@ -434,6 +436,11 @@ def newmusic():
 @login_required
 def tagList():
 
+    if not headers:
+        # print("headers is empty.")
+        flash("Please sign in to spotify to continue.", category="error")
+        return redirect("/")
+
     if request.method == "POST":
 
         print(request.form)
@@ -527,20 +534,39 @@ def tagList():
             db.session.commit()
             flash("Artist removed successfully.", category="success")
 
-    test = (
-        db.session.execute(db.select(UserTags).where(UserTags.tag == "test"))
-        .scalars()
-        .all()[0]
-    )
-    print(test.auto_update_date_last_checked)
-    # test.auto_update_date_last_checked = datetime.datetime(2020, 1, 1)
+    # test = (
+    #     db.session.execute(
+    #         db.select(UserTags).where(UserTags.user_id == current_user.id)
+    #     )
+    #     .scalars()
+    #     .all()
+    # )
+    # print(test)
+    # for tag in test:
+    #     print(tag.auto_update_date_last_checked)
+    #     tag.auto_update_date_last_checked = datetime.datetime(1900, 1, 1)
     # db.session.commit()
+    # for tag in test:
+    #     print(tag.auto_update_date_last_checked)
+
     # test2 = (
+    #     db.session.execute(
+    #         db.select(AddedArtists).where(AddedArtists.user_id == current_user.id)
+    #     )
+    #     .scalars()
+    #     .all()
+    # )
+    # print(test2)
+    # for artist in test2:
+    #     print(artist.name)
+    # test.auto_update_date_last_checked = datetime.datetime(2000, 1, 1)
+    # db.session.commit()
+    # test3 = (
     #     db.session.execute(db.select(UserTags).where(UserTags.tag == "test"))
     #     .scalars()
     #     .all()[0]
     # )
-    # print(test2.auto_update_date_last_checked)
+    # print(test3.auto_update_date_last_checked)
 
     class UserTagsAndArtists:
         def __init__(self, editID, deleteID, tag, artists, linkedPlaylistName):

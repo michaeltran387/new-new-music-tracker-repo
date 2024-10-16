@@ -26,6 +26,20 @@ if process.poll() is None:
             .scalars()
             .all()
         )
+        test = (
+            db.session.execute(db.select(UserTags).where(UserTags.auto_update == True))
+            .scalars()
+            .all()
+        )
+        print(test)
+        for tag in test:
+            print(tag.auto_update_date_last_checked)
+            tag.auto_update_date_last_checked = datetime.datetime(1900, 1, 1)
+        db.session.commit()
+        for tag in test:
+            print(tag.auto_update_date_last_checked)
+
+        #
         for tag in tagList:
             access_token = (
                 db.session.execute(
@@ -45,7 +59,8 @@ if process.poll() is None:
                 .all()
             )
             for artist in artistList:
-                params = {"include_groups": "album,single"}
+                limit = 5
+                params = {"include_groups": "album,single", "limit": limit}
                 r = requests.get(
                     "https://api.spotify.com/v1/artists/"
                     + artist.artist_id
@@ -53,7 +68,9 @@ if process.poll() is None:
                     params=params,
                     headers=headers,
                 )
+
                 if r.status_code == 401:
+                    print(r.json())
                     refresh_token = db.session.execute(
                         db.select(AccessToken.refresh_token).where(
                             AccessToken.user_id == tag.user_id
@@ -90,14 +107,6 @@ if process.poll() is None:
                     )
                     access_token_object.access_token = r.json()["access_token"]
                     db.session.commit()
-
-                    r = requests.get(
-                        "https://api.spotify.com/v1/artists/"
-                        + artist.artist_id
-                        + "/albums",
-                        params=params,
-                        headers=headers,
-                    )
                     access_token = (
                         db.session.execute(
                             db.select(AccessToken.access_token).where(
@@ -108,33 +117,106 @@ if process.poll() is None:
                         .all()[0]
                     )
                     headers = {"Authorization": "Bearer " + access_token}
-                    print(r.json())
-                    os.kill(os.getpid(), signal.SIGINT)
-                rdict = r.json()
-                for item in range(len(rdict["items"])):
-                    print(rdict["items"][item]["release_date"])
-                    release_date = rdict["items"][item]["release_date"]
-                    print(len(rdict["items"][item]["release_date"]) == 4)
-                    if len(rdict["items"][item]["release_date"]) == 4:
-                        release_date = datetime.datetime(int(release_date[0:4]), 1, 1)
-                    else:
-                        release_date = datetime.datetime(
-                            int(release_date[0:4]),
-                            int(release_date[5:7]),
-                            int(release_date[8:]),
-                        )
-                    if tag.auto_update_date_last_checked < release_date:
-                        # if True:
-                        albumID = rdict["items"][item]["id"]
-                        r = requests.get(
-                            "https://api.spotify.com/v1/albums/{}/tracks".format(
-                                albumID
-                            ),
-                            headers=headers,
-                        )
-                        for item in range(len(r.json()["items"])):
-                            uris.append(r.json()["items"][item]["uri"])
 
+                    r = requests.get(
+                        "https://api.spotify.com/v1/artists/"
+                        + artist.artist_id
+                        + "/albums",
+                        params=params,
+                        headers=headers,
+                    )
+                    # print(r.json())
+
+                    # os.kill(os.getpid(), signal.SIGINT)
+
+                # test = (
+                #     db.session.execute(
+                #         db.select(UserTags).where(UserTags.tag == "test")
+                #     )
+                #     .scalars()
+                #     .all()[0]
+                # )
+                # print(test.auto_update_date_last_checked)
+                counter = 0
+                while True:
+
+                    release_date = ""
+                    # for item in range(limit):
+                    #     print(r.json()["items"][item]["type"])
+                    print(r.url)
+
+                    if len(r.json()["items"]) < limit:
+                        print("the value of limit is now changing")
+                        print(len(r.json()["items"]))
+
+                        limit = len(r.json()["items"])
+                    # print(limit)
+                    print(limit)
+                    for item in range(limit):
+                        print(counter)
+                        counter += 1
+                        # print(r.url)
+                        # print(r.json())
+                        # for item in range(limit):
+                        #     print(r.json()["items"][item]["type"])
+                        # print(r.json()["items"][item])
+                        print(r.json()["items"][item]["name"])
+                        print(r.json()["items"][item]["type"])
+                        if r.json()["items"][item]["type"] == "track":
+                            print("we fucked up")
+                            continue
+                        release_date = r.json()["items"][item]["release_date"]
+                        # print(release_date)
+
+                        if len(r.json()["items"][item]["release_date"]) == 4:
+                            release_date = datetime.datetime(
+                                int(release_date[0:4]), 1, 1
+                            )
+                        else:
+                            release_date = datetime.datetime(
+                                int(release_date[0:4]),
+                                int(release_date[5:7]),
+                                int(release_date[8:]),
+                            )
+                        # print(release_date)
+                        if tag.auto_update_date_last_checked < release_date:
+                            # if True:
+                            albumID = r.json()["items"][item]["id"]
+                            r2 = requests.get(
+                                "https://api.spotify.com/v1/albums/{}/tracks".format(
+                                    albumID
+                                ),
+                                headers=headers,
+                            )
+                            for item in range(len(r2.json()["items"])):
+                                uris.append(r2.json()["items"][item]["uri"])
+
+                        print(release_date)
+                        if tag.auto_update_date_last_checked < release_date:
+                            print("we're going again")
+                            print(counter)
+                        if counter == limit - 1:
+                            print("this is the last item")
+                            break
+                        else:
+                            break
+                    print("is the for loop over yet")
+                    print(counter)
+                    if counter == limit - 1:
+                        if r.json()["next"] is None:
+                            break
+                        else:
+                            r = requests.get(
+                                r.json()["next"],
+                                headers=headers,
+                            )
+                    if tag.auto_update_date_last_checked > release_date:
+                        break
+                    # print(r.json()["next"])
+
+                    # else:
+
+            print(uris)
             URITempArray = []
             a = 0
             b = 99
@@ -158,7 +240,6 @@ if process.poll() is None:
                     b += 100
                     if b > len(uris) - 1:
                         b = len(uris) - 1
-                print("check it")
 
             else:
                 data = {"uris": uris}
@@ -169,12 +250,14 @@ if process.poll() is None:
                     headers=headers,
                     json=data,
                 )
-                print("check it")
-            tag.auto_update_date_last_checked = datetime.datetime.now()
+
+            print(tag.tag)
+            for tag in tagList:
+                print(tag.tag)
+                tag.auto_update_date_last_checked = datetime.datetime.now()
             db.session.commit()
 
-
-os.kill(os.getpid(), signal.SIGINT)
+        os.kill(os.getpid(), signal.SIGINT)
 
 # x = datetime.datetime(1, 1, 1)
 # y = datetime.datetime(2, 1, 1)
