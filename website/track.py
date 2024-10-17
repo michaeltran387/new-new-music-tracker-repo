@@ -6,6 +6,7 @@ from flask_login import login_required, current_user
 import base64
 import json
 import random
+import time
 
 
 track_blueprint = Blueprint("track", __name__)
@@ -44,10 +45,6 @@ def addArtist(name, id, tag):
     db.session.add(addArtist)
     db.session.commit()
 
-    # check = db.session.execute(
-    #     db.select(AddedArtists.artist_id).where(AddedArtists.user_id == current_user.id)
-    # ).scalars()
-
     return None
 
 
@@ -67,8 +64,6 @@ def spotifyauth():
     }
 
     r = requests.get(authURL, params=params)
-
-    # print(r.text)
 
     return redirect(r.url)
 
@@ -126,10 +121,6 @@ def callback():
         check[0].refresh_token = r.json()["refresh_token"]
         db.session.commit()
 
-    # print(check)
-    # print(check[0].access_token)
-    # print(check[0].refresh_token)
-
     return redirect("/newmusic")
 
 
@@ -137,13 +128,7 @@ def callback():
 @login_required
 def newmusic():
 
-    # print(request.form)
-
-    # print(current_user)
-    # print(current_user.id)
-
     if not headers:
-        print("headers is empty.")
         flash("Please sign in to spotify to continue.", category="error")
         return redirect("/")
 
@@ -164,7 +149,7 @@ def newmusic():
 
     if request.method == "POST":
 
-        print(request.form)
+        # print(request.form)
 
         if not request.form:
             flash(
@@ -216,7 +201,6 @@ def newmusic():
                 )
 
                 r = requests.get(endpoint, params=params, headers=headers)
-                print(r.url)
 
                 while True:
 
@@ -295,9 +279,6 @@ def newmusic():
                 if playlistObjectIndex % 3 == 0:
                     userPlaylists3.append(userPlaylists[playlistObjectIndex])
 
-            # for x in userPlaylists1:
-            #     print(x.image)
-
             return render_template(
                 "/newmusic.html",
                 newMusicList=newMusicList,
@@ -307,17 +288,20 @@ def newmusic():
                 userPlaylists3=userPlaylists3,
             )
 
-        if "userTag" not in request.form.values():
+        if "userTag" not in request.form.values() and not (
+            request.form["addToPlaylistSelect"] == "newPlaylist"
+            or request.form["addToPlaylistSelect"] == "existingPlaylist"
+        ):
             flash(
                 "Please make sure to assign at least one tag to the added artists.",
                 category="error",
             )
             return redirect("track-from-playlist")
 
-        if "userTag" in request.form.values():
+        requestDict = request.form.to_dict()
+        tagList = []
 
-            requestDict = request.form.to_dict()
-            tagList = []
+        if "userTag" in request.form.values():
 
             for x in list(requestDict.values()):
                 if x == "userTag":
@@ -351,7 +335,6 @@ def newmusic():
                 createPlaylistEndpoint = (
                     "https://api.spotify.com/v1/users/" + spotifyUserID + "/playlists"
                 )
-                # print(request.form)
                 newPlaylistName = request.form["newPlaylistName"]
                 data = {"name": newPlaylistName}
 
@@ -384,11 +367,31 @@ def newmusic():
                     )
                 )
 
-                data = {"uris": URIArray}
+                a = 0
+                b = 99
+                URITempArray = []
+                if len(URIArray) > 100:
+                    while True:
+                        if a == b:
+                            URITempArray = URIArray[a]
+                        else:
+                            URITempArray = URIArray[a:b]
+                        data = {"uris": URITempArray}
+                        requests.post(
+                            addItemsToPlaylistEndpoint, headers=headers, json=data
+                        )
+                        if b == len(URIArray) - 1:
+                            break
+                        a += 100
+                        b += 100
+                        if b > len(URIArray) - 1:
+                            b = len(URIArray) - 1
 
-                r = requests.post(
-                    addItemsToPlaylistEndpoint, headers=headers, json=data
-                )
+                else:
+                    data = {"uris": URIArray}
+                    requests.post(
+                        addItemsToPlaylistEndpoint, headers=headers, json=data
+                    )
 
                 flash(
                     "Selected albums have been succesfully added to a new playlist.",
@@ -421,9 +424,29 @@ def newmusic():
                 "https://api.spotify.com/v1/playlists/" + userPlaylistID + "/tracks"
             )
 
-            data = {"uris": URIArray}
+            a = 0
+            b = 99
+            URITempArray = []
+            if len(URIArray) > 100:
+                while True:
+                    if a == b:
+                        URITempArray = URIArray[a]
+                    else:
+                        URITempArray = URIArray[a:b]
+                    data = {"uris": URITempArray}
+                    requests.post(
+                        addItemsToPlaylistEndpoint, headers=headers, json=data
+                    )
+                    if b == len(URIArray) - 1:
+                        break
+                    a += 100
+                    b += 100
+                    if b > len(URIArray) - 1:
+                        b = len(URIArray) - 1
 
-            r = requests.post(addItemsToPlaylistEndpoint, headers=headers, json=data)
+            else:
+                data = {"uris": URIArray}
+                requests.post(addItemsToPlaylistEndpoint, headers=headers, json=data)
 
             flash(
                 "Selected albums have been succesfully added to the selected playlist.",
@@ -437,7 +460,6 @@ def newmusic():
 def tagList():
 
     if not headers:
-        # print("headers is empty.")
         flash("Please sign in to spotify to continue.", category="error")
         return redirect("/")
 
@@ -507,8 +529,6 @@ def tagList():
                 .scalars()
                 .all()
             )
-            print(result)
-            print(result[0].tag)
             db.session.delete(result[0])
             db.session.commit()
 
@@ -534,40 +554,6 @@ def tagList():
             db.session.commit()
             flash("Artist removed successfully.", category="success")
 
-    # test = (
-    #     db.session.execute(
-    #         db.select(UserTags).where(UserTags.user_id == current_user.id)
-    #     )
-    #     .scalars()
-    #     .all()
-    # )
-    # print(test)
-    # for tag in test:
-    #     print(tag.auto_update_date_last_checked)
-    #     tag.auto_update_date_last_checked = datetime.datetime(1900, 1, 1)
-    # db.session.commit()
-    # for tag in test:
-    #     print(tag.auto_update_date_last_checked)
-
-    # test2 = (
-    #     db.session.execute(
-    #         db.select(AddedArtists).where(AddedArtists.user_id == current_user.id)
-    #     )
-    #     .scalars()
-    #     .all()
-    # )
-    # print(test2)
-    # for artist in test2:
-    #     print(artist.name)
-    # test.auto_update_date_last_checked = datetime.datetime(2000, 1, 1)
-    # db.session.commit()
-    # test3 = (
-    #     db.session.execute(db.select(UserTags).where(UserTags.tag == "test"))
-    #     .scalars()
-    #     .all()[0]
-    # )
-    # print(test3.auto_update_date_last_checked)
-
     class UserTagsAndArtists:
         def __init__(self, editID, deleteID, tag, artists, linkedPlaylistName):
             self.editID = editID
@@ -585,13 +571,10 @@ def tagList():
     )
 
     userTagsUIInfo = []
-    # artistList = []
     editIDList = random.sample(range(1, len(result) + 1), len(result))
     deleteIDList = random.sample(range(1, len(result) + 1), len(result))
     for item in range(len(deleteIDList)):
         deleteIDList[item] = -abs(deleteIDList[item])
-    # print(editIDList)
-    # print(deleteIDList)
     counter = 0
 
     for userTagsObj in result:
@@ -605,7 +588,6 @@ def tagList():
             .all()
         )
 
-        # print(userTagsObj.auto_update_playlist_id)
         if userTagsObj.auto_update_playlist_id is not None:
             r = requests.get(
                 "https://api.spotify.com/v1/playlists/{}".format(
@@ -613,7 +595,6 @@ def tagList():
                 ),
                 headers=headers,
             )
-            # print(r.json())
             obj = UserTagsAndArtists(
                 editIDList[counter],
                 deleteIDList[counter],
@@ -630,35 +611,6 @@ def tagList():
         counter += 1
 
     userTagsUIInfo.sort(key=lambda x: x.tag)
-    # userTagsAndArtistsDict = {}
-
-    # for counter, tag in enumerate(tagList):
-    #     userTagsAndArtistsDict[tag] = artistList[counter]
-
-    # userTagsAndArtistsDict = {
-    #     k: v
-    #     for k, v in sorted(
-    #         userTagsAndArtistsDict.items(),
-    #         key=lambda item: len(item[1]),
-    #         reverse=True,
-    #     )
-    # }
-
-    # userTagsAndArtistsDict = {
-    #     k: v
-    #     for k, v in sorted(userTagsAndArtistsDict.items(), key=lambda item: (item[0]))
-    # }
-
-    # class UserTagsAndArtists:
-    #     def __init__(self, tag, artists, linkedPlaylist):
-    #         self.tag = tag
-    #         self.artists = artists
-    #         self.linkedPlaylist = linkedPlaylist
-
-    # userTagsAndArtistsList = []
-    # for tag, artists in userTagsAndArtistsDict.items():
-    #     userTagsAndArtistsObj = UserTagsAndArtists(tag, artists)
-    #     userTagsAndArtistsList.append(userTagsAndArtistsObj)
 
     return render_template("tag-list.html", userTagsUIInfo=userTagsUIInfo)
 
@@ -668,13 +620,12 @@ def tagList():
 def trackIndividual():
 
     if not headers:
-        # print("headers is empty.")
         flash("Please sign in to spotify to continue.", category="error")
         return redirect("/")
 
     if request.method == "GET":
-
         return render_template("track-individual.html")
+
     if request.method == "POST":
         print(request.form)
         if "searchArtist" in request.form:
@@ -687,19 +638,17 @@ def trackIndividual():
             r = requests.get(
                 "https://api.spotify.com/v1/search", params=payload, headers=headers
             )
-            # print(r.json())
 
             global searchResultList
             searchResultList = []
 
             for i in range(10):
-                # print(r.json())
                 if len(r.json()["artists"]["items"]) < 10:
                     flash(
                         "Less than 5 items were found. Please check your search and try again.",
                         category="error",
                     )
-                    return redirect("add-all")
+                    return redirect("track-individual")
                 if r.json()["artists"]["items"][i]["images"]:
                     searchResultList.append(
                         SearchResultTrack(
@@ -742,18 +691,13 @@ def trackIndividual():
                 return redirect("/track-individual")
 
             requestDict = request.form.to_dict()
-            # print(requestDict)
 
             tagCount = list(request.form.values()).count("selectedTag")
-            # print(tagCount)
 
             tagList = []
             for x in range(tagCount):
                 tagList.append(list(requestDict.keys())[0])
                 del requestDict[list(requestDict.keys())[0]]
-
-            print(tagList)
-            print(requestDict)
 
             addedArtistID = list(requestDict.values())[0]
 
@@ -809,7 +753,6 @@ def trackIndividual():
 def trackFromPlaylist():
 
     if not headers:
-        # print("headers is empty.")
         flash("Please sign in to spotify to continue.", category="error")
         return redirect("/")
 
@@ -860,11 +803,7 @@ def trackFromPlaylist():
         userPlaylistsOdd = []
         userPlaylistsEven = []
 
-        # for item in userPlaylists:
-        #     print(item.name)
         userPlaylists.sort(key=lambda item: item.name)
-        # for item in userPlaylists:
-        #     print(item.name)
 
         for playlist in range(len(userPlaylists)):
             if playlist % 2 == 1:
@@ -883,7 +822,6 @@ def trackFromPlaylist():
 @login_required
 def trackFromPlaylistCallback():
     if not headers:
-        # print("headers is empty.")
         flash("Please sign in to spotify to continue.", category="error")
         return redirect("/")
 
@@ -896,12 +834,9 @@ def trackFromPlaylistCallback():
         params = {"fields": "limit,total,next,previous,items(track(artists(id,name)))"}
 
         r = requests.get(url, headers=headers, params=params)
-        # print(r.url)
 
         artistList = []
         artistIDList = []
-
-        counter = 0
 
         class Artist:
             def __init__(self, id, name, image):
@@ -909,19 +844,15 @@ def trackFromPlaylistCallback():
                 self.name = name
                 self.image = image
 
-        callCounter = 0
-
-        while (r.json()["next"] != None) or (r.json()["previous"] == None):
-            counter += 1
-
+        while True:
             for item in range(len(r.json()["items"])):
                 for artist in range(len(r.json()["items"][item]["track"]["artists"])):
-                    # print(r.json()["items"][item]["track"]["artists"])
-
                     if (
                         r.json()["items"][item]["track"]["artists"][artist]["id"]
                         not in artistIDList
                     ):
+
+                        # print(r.json())
                         r2 = requests.get(
                             "https://api.spotify.com/v1/artists/{}".format(
                                 r.json()["items"][item]["track"]["artists"][artist][
@@ -930,12 +861,29 @@ def trackFromPlaylistCallback():
                             ),
                             headers=headers,
                         )
-                        callCounter += 1
+                        if r2.status_code == 429:
+                            while True:
+
+                                print("api rate limit exceeded we're gonna wait")
+                                time.sleep(5)
+                                r2 = requests.get(
+                                    "https://api.spotify.com/v1/artists/{}".format(
+                                        r.json()["items"][item]["track"]["artists"][
+                                            artist
+                                        ]["id"]
+                                    ),
+                                    headers=headers,
+                                )
+                                print(r2.status_code)
+                                if r2.status_code != 429:
+                                    break
+
+                        print(r2.json())
+
                         artistIDList.append(
                             r.json()["items"][item]["track"]["artists"][artist]["id"]
                         )
-                        # print(callCounter)
-                        # print(r2.json())
+
                         if r2.json()["images"]:
                             artistList.append(
                                 Artist(
@@ -984,12 +932,11 @@ def trackFromPlaylistCallback():
 @login_required
 def autoTrack():
 
-    if not headers:
+    print(request.form)
 
+    if not headers:
         flash("Please sign in to spotify to continue.", category="error")
         return redirect("/")
-
-    print(request.form)
 
     if request.method == "GET":
 
@@ -1192,9 +1139,7 @@ def autoTrack():
                 )
 
         if request.form["addToPlaylistSelect"] == "existingPlaylist":
-            print(request.form)
 
-            print(tagList)
             if len(list(request.form.values())) == len(tagList) + 2:
                 flash("Please select an existing playlist.", category="error")
                 return redirect("auto-track")
@@ -1256,7 +1201,6 @@ def autoTrack():
 @login_required
 def addAll():
     if not headers:
-        # print("headers is empty.")
         flash("Please sign in to spotify to continue.", category="error")
         return redirect("/")
 
@@ -1264,6 +1208,7 @@ def addAll():
         return render_template("add-all.html")
 
     if request.method == "POST":
+        print(request.form)
         if "searchArtist" in request.form:
 
             searchArtist = request.form.get("searchArtist")
@@ -1424,9 +1369,6 @@ def addAll():
                         for i in range(len(r.json()["items"])):
                             URIArray.append(r.json()["items"][i]["uri"])
 
-                    # print(URIArray)
-                    # print(len(URIArray))
-
                     addItemsToPlaylistEndpoint = (
                         "https://api.spotify.com/v1/playlists/{}/tracks".format(
                             newPlaylistID
@@ -1469,7 +1411,9 @@ def addAll():
 
             if request.form["addToPlaylistSelect"] == "existingPlaylist":
 
-                # print(request.form)
+                if len(request.form.keys()) == 3:
+                    flash("Please select an existing playlist.", category="error")
+                    return redirect("/add-all")
 
                 userPlaylistID = request.form["userPlaylistID"]
 
@@ -1527,9 +1471,6 @@ def addAll():
                     for i in range(len(r.json()["items"])):
                         URIArray.append(r.json()["items"][i]["uri"])
 
-                # print(URIArray)
-                # print(len(URIArray))
-
                 addItemsToPlaylistEndpoint = (
                     "https://api.spotify.com/v1/playlists/{}/tracks".format(
                         userPlaylistID
@@ -1569,11 +1510,3 @@ def addAll():
                     category="success",
                 )
                 return redirect("/add-all")
-
-
-@track_blueprint.route("/shutdown", methods=["GET"])
-def shutdown():
-    func = request.environ.get("werkzeug.server.shutdown")
-    print(func)
-    func()
-    return "Server is shutting down..."
