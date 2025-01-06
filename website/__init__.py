@@ -27,29 +27,10 @@ def create_app():
 
     @login_manager.user_loader
     def load_user(id):
-        # user = db.session.execute(db.select(User).filter_by(id=id)).scalar_one_or_none()
-        # if (
-        #     db.session.execute(db.select(User).filter_by(id=id)).scalar_one_or_none()
-        #     == None
-        # ):
-        #     return None
-        # else:
-        #     return user
         return db.session.execute(db.select(User).filter_by(id=id)).scalar_one_or_none()
 
     login_manager.login_view = "auth.login"
     login_manager.login_message = "Please log in to access this page."
     login_manager.login_message_category = "error"
-
-    # con = sqlite3.connect("new-new-music-tracker.db")
-    # cur = con.cursor()
-    # res = cur.execute(
-    #     "SELECT name FROM sqlite_master WHERE type='table' AND name = 'users'"
-    # )
-    # if len(res.fetchall()) == 0:
-    #     cur.execute("CREATE TABLE users(username, password)")
-    # res = cur.execute("SELECT name from sqlite_master")
-    # print(res.fetchone())
-    # con.close()
 
     return app

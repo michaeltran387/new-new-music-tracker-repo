@@ -61,11 +61,3 @@ class AccessToken(db.Model):
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     access_token: Mapped[str] = mapped_column(nullable=False)
     refresh_token: Mapped[str] = mapped_column(nullable=False)
-
-
-# class FlaggedMusic(db.Model):
-#     __tablename__ = "flaggedMusic"
-
-#     id: Mapped[int] = mapped_column(primary_key=True)
-#     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-#     album_id: Mapped[str] = mapped_column(nullable=False)

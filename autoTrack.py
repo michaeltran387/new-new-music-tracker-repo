@@ -27,6 +27,14 @@ if process.poll() is None:
             .all()
         )
 
+        # result = (
+        #     db.session.execute(db.select(UserTags).where(UserTags.tag == "?General 3"))
+        #     .scalars()
+        #     .all()
+        # )[0]
+        # result.auto_update_date_last_checked = datetime.datetime(1900, 1, 1)
+        # db.session.commit()
+
         for tag in tagList:
             uris = []
             access_token = (
@@ -73,12 +81,10 @@ if process.poll() is None:
                             b"b2817ab1a6a6471dae92088510ed25f1:d4fad7b2dbac4eca9c558e39c584a6d0"
                         ).decode()
                     )
-
                     headersAuth = {
                         "Authorization": "Basic " + authorization,
                         "Content-Type": "application/x-www-form-urlencoded",
                     }
-
                     r = requests.post(
                         "https://accounts.spotify.com/api/token",
                         headers=headersAuth,
@@ -105,7 +111,6 @@ if process.poll() is None:
                         .all()[0]
                     )
                     headers = {"Authorization": "Bearer " + access_token}
-
                     r = requests.get(
                         "https://api.spotify.com/v1/artists/"
                         + artist.artist_id
@@ -113,6 +118,7 @@ if process.poll() is None:
                         params=params,
                         headers=headers,
                     )
+                    print("access token updated")
 
                 while True:
                     counter = 0
@@ -122,10 +128,9 @@ if process.poll() is None:
                     if len(r.json()["items"]) < limit:
                         limit = len(r.json()["items"])
 
+                    print(artist.name)
                     for item in range(limit):
-
                         release_date = r.json()["items"][item]["release_date"]
-
                         if len(r.json()["items"][item]["release_date"]) == 4:
                             release_date = datetime.datetime(
                                 int(release_date[0:4]), 1, 1
@@ -203,5 +208,6 @@ if process.poll() is None:
         for tag in tagList:
             tag.auto_update_date_last_checked = datetime.datetime.now()
         db.session.commit()
+        print("Finished!")
 
         os.kill(os.getpid(), signal.SIGINT)

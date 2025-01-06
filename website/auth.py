@@ -12,26 +12,14 @@ from flask_login import (
 from . import views
 import requests
 
-# from .__init__ import load_user
-
-# import sqlite3
-
-
 auth = Blueprint("auth", __name__)
-
-# con = sqlite3.connect("new-new-music-tracker.db", check_same_thread=False)
-# cur = con.cursor()
 
 
 @auth.route("sign-up", methods=["GET", "POST"])
 def signup():
     if request.method == "GET":
-
-        # user = db.session.execute(db.select(User)).scalars()
-        # print(user.fetchall()[0].password)
-        # print(User.get(id))
-
         return render_template("sign-up.html")
+
     if request.method == "POST":
         username = request.form.get("username")
         displayname = request.form.get("displayname")
@@ -59,77 +47,22 @@ def signup():
             flash("Username already exists.", category="error")
             return render_template("sign-up.html")
 
-        # password = b"super super secret password"
-        # hashedpw = bcrypt.hashpw(password, bcrypt.gensalt())
-        # print(hashedpw)
-        # print(*hashedpw)
-
-        # print(hashedpw)
-        # unhashedpw = check_password_hash(hashedpw, password1)
-        # print(unhashedpw)
-
-        # res = cur.execute("SELECT name from sqlite_master")
-        # print(res.fetchone())
-
-        # res = cur.execute("SELECT COUNT(*) FROM users")
-        # if res.fetchone()[0] == 0:
-        #     check = "INSERT INTO users VALUES ('{username}', '{password}')".format(
-        #         username=username, password=password1
-        #     )
-        #     cur.execute(check)
-        #     con.commit()
-        #     return render_template("sign-up.html")
-
-        # res = cur.execute(
-        #     "SELECT username FROM users WHERE username='{username}'".format(
-        #         username=username
-        #     )
-        # )
-        # if len(res.fetchone()) != 0:
-        #     flash("This username already exists.", category="error")
-        #     return render_template("sign-up.html")
-
-        # else:
-        #     check = "INSERT INTO users VALUES ('{username}', '{password}')".format(
-        #         username=username, password=password1
-        #     )
-        #     cur.execute(check)
-        #     con.commit()
-        #     # res = cur.execute("SELECT *, password FROM users")
-        # print(res.fetchall())
-
         return render_template("login.html")
 
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():
 
-    # print(current_user)
-    # print(current_user.id)
-
     if request.method == "GET":
         return render_template("login.html")
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        # res = cur.execute(
-        #     "SELECT password FROM users WHERE username='{username}'".format(
-        #         username=username
-        #     )
-        # )
-        # print(password)
-        # testpw = res.fetchone()[0]
-        # print(testpw)
 
         user = db.session.execute(
             db.select(User).filter_by(username=username)
         ).scalar_one_or_none()
-        # print(user)
-        # print(type(user))
-        # print(user.username)
-        # print(user.password)
-        # print(user.password[15:])
-        # print(check_password_hash(user.password, password))
+
         if user == None:
             flash("Username does not exist.", category="error")
             return render_template("login.html")
@@ -146,13 +79,6 @@ def login():
             print(current_user.is_authenticated)
             login_user(user)
 
-            # print(current_user)
-            # print(current_user.id)
-            # login_user(user)
-            # print(type(user.get_id()))
-            # user = db.session.execute(db.select(User).filter_by(id=id)).scalar_one()
-            # print(user)
-            # print(user.get_id())
             return redirect(url_for("views.home"))
 
 
