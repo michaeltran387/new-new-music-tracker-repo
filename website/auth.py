@@ -12,6 +12,7 @@ from flask_login import (
 from . import views
 import requests
 
+
 auth = Blueprint("auth", __name__)
 
 
@@ -85,16 +86,47 @@ def login():
 @auth.route("/logout")
 @login_required
 def logout():
-    print(current_user)
-    print(current_user.get_id())
-    print(current_user.is_authenticated)
     logout_user()
     return redirect(url_for("auth.login"))
 
 
-@auth.route("/delete")
+@auth.route("/delete-account", methods=["GET", "POST"])
 @login_required
-def deleteaccount():
-    db.session.delete(user)
-    db.session.commit()
-    return render_template("index.html")
+def deleteAccount():
+    if request.method == "GET":
+        return render_template("delete-account.html")
+    if request.method == "POST":
+        id = current_user.get_id()
+
+        user_added_artists = (
+            db.session.execute(db.select(AddedArtists).filter_by(user_id=id))
+            .scalars()
+            .all()
+        )
+        if user_added_artists:
+            for artist in user_added_artists:
+                db.session.delete(artist)
+
+        user_tags = (
+            db.session.execute(db.select(UserTags).filter_by(user_id=id))
+            .scalars()
+            .all()
+        )
+        if user_tags:
+            for tag in user_tags:
+                db.session.delete(tag)
+
+        access_token = (
+            db.session.execute(db.select(AccessToken).filter_by(user_id=id))
+            .scalars()
+            .all()
+        )
+        if access_token:
+            db.session.delete(access_token[0])
+
+        user = db.session.execute(db.select(User).filter_by(id=id)).scalars().all()[0]
+        db.session.delete(user)
+        db.session.commit()
+        logout_user()
+
+        return redirect("/")

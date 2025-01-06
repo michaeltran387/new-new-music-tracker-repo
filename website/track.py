@@ -60,7 +60,7 @@ def spotifyauth():
         "response_type": "code",
         "redirect_uri": "http://127.0.0.1:5000/callback",
         "scope": "playlist-read-private,playlist-modify-public,playlist-modify-private",
-        # "show_dialog": True,
+        "show_dialog": True,
     }
 
     r = requests.get(authURL, params=params)
@@ -107,7 +107,7 @@ def callback():
         .scalars()
         .all()
     )
-    # print(check)
+
     if not check:
         access_token = AccessToken(
             user_id=current_user.id,
@@ -1510,3 +1510,45 @@ def addAll():
                     category="success",
                 )
                 return redirect("/add-all")
+
+
+# @track_blueprint.route("/delete-account", methods=["GET", "POST"])
+# @login_required
+# def deleteAccount():
+#     if request.method == "GET":
+#         return render_template("delete-account.html")
+#     if request.method == "POST":
+#         id = current_user.get_id()
+
+#         user_added_artists = (
+#             db.session.execute(db.select(AddedArtists).filter_by(user_id=id))
+#             .scalars()
+#             .all()
+#         )
+#         if user_added_artists:
+#             for artist in user_added_artists:
+#                 db.session.delete(artist)
+
+#         user_tags = (
+#             db.session.execute(db.select(UserTags).filter_by(user_id=id))
+#             .scalars()
+#             .all()
+#         )
+#         if user_tags:
+#             for tag in user_tags:
+#                 db.session.delete(tag)
+
+#         access_token = (
+#             db.session.execute(db.select(AccessToken).filter_by(user_id=id))
+#             .scalars()
+#             .all()[0]
+#         )
+#         if access_token:
+#             db.session.delete(access_token)
+
+#         user = db.session.execute(db.select(User)).filter_by(id=id).scalars().all()[0]
+#         db.session.delete(user)
+#         db.session.commit()
+#         logout_user()
+
+#         return redirect("/")
