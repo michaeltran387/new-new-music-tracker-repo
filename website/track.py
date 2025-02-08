@@ -60,7 +60,7 @@ def spotifyauth():
         "response_type": "code",
         "redirect_uri": "http://127.0.0.1:5000/callback",
         "scope": "playlist-read-private,playlist-modify-public,playlist-modify-private",
-        "show_dialog": True,
+        # "show_dialog": True,
     }
 
     r = requests.get(authURL, params=params)
@@ -1208,7 +1208,6 @@ def addAll():
         return render_template("add-all.html")
 
     if request.method == "POST":
-        print(request.form)
         if "searchArtist" in request.form:
 
             searchArtist = request.form.get("searchArtist")
@@ -1281,9 +1280,6 @@ def addAll():
                     userPlaylists2.append(userPlaylists[playlistObjectIndex])
                 if playlistObjectIndex % 3 == 0:
                     userPlaylists3.append(userPlaylists[playlistObjectIndex])
-
-            for x in userPlaylists1:
-                print(x.name)
 
             return render_template(
                 "add-all.html",
@@ -1364,7 +1360,10 @@ def addAll():
                             )
                         )
                         r = requests.get(
-                            getAlbumTracksEndpoint, headers=headers, params=params
+                            getAlbumTracksEndpoint,
+                            headers=headers,
+                            params=params,
+                            timeout=10,
                         )
                         for i in range(len(r.json()["items"])):
                             URIArray.append(r.json()["items"][i]["uri"])

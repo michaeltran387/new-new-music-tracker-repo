@@ -150,6 +150,7 @@ if process.poll() is None:
                                     albumID
                                 ),
                                 headers=headers,
+                                params={"limit": "50"},
                             )
                             for item in range(len(r2.json()["items"])):
                                 uris.append(r2.json()["items"][item]["uri"])
